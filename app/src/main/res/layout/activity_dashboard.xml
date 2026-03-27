@@ -1,0 +1,1213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#EAEAEA"
+    tools:context=".DashboardActivity">
+
+    <ImageView
+        android:id="@+id/ivHeaderBg"
+        android:layout_width="match_parent"
+        android:layout_height="250dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/backgroud_dashboard"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tvHello"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="40dp"
+        android:fontFamily="@font/bricolagegrotesque_36pt_regular"
+        android:text="Hello, User"
+        android:textColor="#FFFFFF"
+        android:textSize="20dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:fontFamily="@font/bricolagegrotesque_48pt_semibold"
+        android:text="Welcome To IGrow!"
+        android:textColor="#FFFFFF"
+        android:textSize="22dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvHello" />
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="140dp"
+        android:layout_marginBottom="-40dp"
+        app:cardBackgroundColor="#FFFFFF"
+        app:cardCornerRadius="40dp"
+        app:cardElevation="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/bottomNavigation"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:fillViewport="true"
+            android:paddingBottom="60dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardWarning"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardBackgroundColor="#FFE380"
+                    app:cardCornerRadius="14dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="#DD961C"
+                    app:strokeWidth="2dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="12dp">
+
+                        <ImageView
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:src="@drawable/warning" />
+
+                        <TextView
+                            android:id="@+id/tvPesanPeringatan"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginHorizontal="8dp"
+                            android:layout_weight="1"
+                            android:fontFamily="@font/baloo2_regular"
+                            android:text="Kelembapan Tanah Dibawah Normal, segera melakukan penyiraman"
+                            android:textColor="@color/black"
+                            android:textSize="14dp"
+                            android:lineHeight="15dp"/>
+
+                        <ImageView
+                            android:id="@+id/btnCloseWarning"
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:src="@drawable/close"
+                            app:tint="#DD961C" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="6dp"
+                    app:strokeColor="#666666"
+                    app:strokeWidth="1.6dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="30dp"
+                                android:layout_height="30dp"
+                                android:src="@drawable/sensor_cahaya"
+                                />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:fontFamily="@font/baloo2_medium"
+                                android:text="Intesitas Cahaya"
+                                android:textColor="@color/black"
+                                android:textSize="15dp" />
+                        </LinearLayout>
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="140dp"
+                            android:layout_marginTop="16dp">
+
+                            <FrameLayout
+                                android:layout_width="220dp"
+                                android:layout_height="110dp"
+                                android:layout_centerHorizontal="true"
+                                android:clipChildren="true">
+
+                                <ProgressBar
+                                    android:id="@+id/pbCahaya"
+                                    style="?android:attr/progressBarStyleHorizontal"
+                                    android:layout_width="220dp"
+                                    android:layout_height="220dp"
+                                    android:layout_gravity="top"
+                                    android:indeterminateOnly="false"
+                                    android:max="100"
+                                    android:progress="60"
+                                    android:progressDrawable="@drawable/bg_gauge_track" />
+                            </FrameLayout>
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentBottom="true"
+                                android:layout_centerHorizontal="true"
+                                android:gravity="center"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:id="@+id/tvNilaiCahaya"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:fontFamily="@font/baloo2_semibold"
+                                    android:text="82.000"
+                                    android:textColor="#ECB800"
+                                    android:textSize="28sp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="-8dp"
+                                    android:fontFamily="@font/baloo2_semibold"
+                                    android:text="LUX"
+                                    android:textColor="@color/black"
+                                    android:textSize="20sp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:fontFamily="@font/inter_18pt_medium"
+                                    android:text="Rentang: 80.000-100.000 lux"
+                                    android:textColor="#646464"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+                        </RelativeLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:orientation="horizontal"
+                            android:weightSum="2">
+
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="4dp"
+                                android:layout_weight="1"
+                                app:cardCornerRadius="12dp"
+                                app:cardElevation="0dp"
+                                app:strokeColor="#848484"
+                                app:strokeWidth="1.5dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal"
+                                    android:padding="8dp">
+
+                                    <ImageView
+                                        android:layout_width="23dp"
+                                        android:layout_height="23dp"
+                                        android:src="@drawable/light_bulb" />
+
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginStart="8dp"
+                                        android:orientation="vertical"
+                                        android:gravity="center_vertical">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="Kondisi Saat Ini:"
+                                            android:fontFamily="@font/baloo2_medium"
+                                            android:textColor="@color/black"
+                                            android:textSize="12dp" />
+
+                                        <TextView
+                                            android:id="@+id/tvKondisiCahaya"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:fontFamily="@font/baloo2_semibold"
+                                            android:text="Sangat Terang"
+                                            android:textColor="#000000"
+                                            android:textSize="12dp" />
+
+                                    </LinearLayout>
+                                </LinearLayout>
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="0dp"
+                                android:layout_height="55dp"
+                                android:layout_marginStart="4dp"
+                                android:layout_weight="1"
+                                app:cardCornerRadius="12dp"
+                                app:cardElevation="0dp"
+                                app:strokeColor="#848484"
+                                app:strokeWidth="1.5dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="70dp"
+                                    android:gravity="center"
+                                    android:orientation="vertical"
+                                    android:padding="15dp">
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Status:"
+                                        android:fontFamily="@font/baloo2_medium"
+                                        android:textColor="@color/black"
+                                        android:textSize="14dp"
+                                        android:layout_marginTop="-8dp"/>
+                                    <TextView
+                                        android:id="@+id/tvStatusCahaya"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:fontFamily="@font/baloo2_semibold"
+                                        android:text="NORMAL"
+                                        android:layout_marginTop="-4dp"
+                                        android:textColor="#1DD90D"
+                                        android:textSize="14dp" />
+                                </LinearLayout>
+                            </com.google.android.material.card.MaterialCardView>
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:baselineAligned="false"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="6dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="12dp"
+                            app:cardCornerRadius="20dp"
+                            app:cardElevation="6dp"
+                            app:strokeColor="#848484"
+                            app:strokeWidth="1.5dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:padding="12dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal">
+
+                                    <ImageView
+                                        android:layout_width="28dp"
+                                        android:layout_height="28dp"
+                                        android:src="@drawable/ic_suhuudara" />
+
+                                    <TextView
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginStart="5dp"
+                                        android:layout_marginTop="4dp"
+                                        android:layout_weight="1"
+                                        android:fontFamily="@font/baloo2_medium"
+                                        android:text="Suhu Udara"
+                                        android:textColor="#000000"
+                                        android:textSize="12dp" />
+
+                                    <com.google.android.material.card.MaterialCardView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        app:cardCornerRadius="8dp"
+                                        app:cardBackgroundColor="#A5FF9D"
+                                        android:layout_marginTop="5dp"
+                                        android:layout_marginRight="-1dp">
+
+                                        <TextView
+                                            android:id="@+id/badgeSuhu"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:paddingHorizontal="6dp"
+                                            android:paddingVertical="2dp"
+                                            android:fontFamily="@font/baloo2_medium"
+                                            android:text="Normal"
+                                            android:textColor="#107432"
+                                            android:textSize="8dp"/>
+
+                                    </com.google.android.material.card.MaterialCardView>
+                                </LinearLayout>
+
+                                <TextView
+                                    android:id="@+id/tvNilaiSuhu"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
+                                    android:layout_marginTop="8dp"
+                                    android:fontFamily="@font/inter_18pt_semibold"
+                                    android:text="20°C"
+                                    android:textColor="#FF9340"
+                                    android:textSize="22dp" />
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:gravity="center">
+
+                                    <TextView
+                                        android:id="@+id/tvRentangSuhu"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_gravity="center"
+                                        android:text="+2°C "
+                                        android:textColor="#35AF2B"
+                                        android:fontFamily="@font/inter_18pt_semibold"
+                                        android:textSize="8dp" />
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_gravity="center"
+                                        android:text="| Rentang: 10°-38°C"
+                                        android:textColor="#646464"
+                                        android:fontFamily="@font/inter_18pt_semibold"
+                                        android:textSize="8dp" />
+                                </LinearLayout>
+
+                                <ProgressBar
+                                    android:id="@+id/pbSuhu"
+                                    style="?android:attr/progressBarStyleHorizontal"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="6dp"
+                                    android:layout_marginTop="8dp"
+                                    android:progress="70"
+                                    android:progressTint="@color/black" />
+
+                                <TextView
+                                    android:id="@+id/tvTingkatSuhu"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
+                                    android:layout_marginTop="4dp"
+                                    android:fontFamily="@font/inter_18pt_semibold"
+                                    android:text="Tingkat: 70%"
+                                    android:textSize="10dp"
+                                    android:textColor="#646464"/>
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="12dp"
+                            app:cardCornerRadius="20dp"
+                            app:cardElevation="6dp"
+                            app:strokeColor="#848484"
+                            app:strokeWidth="1.5dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:padding="12dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal">
+
+                                    <ImageView
+                                        android:layout_width="28dp"
+                                        android:layout_height="28dp"
+                                        android:src="@drawable/ic_kelembapantanah" />
+
+                                    <TextView
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginStart="5dp"
+                                        android:layout_weight="1"
+                                        android:fontFamily="@font/baloo2_medium"
+                                        android:text="Kelembapan Tanah"
+                                        android:textColor="#000000"
+                                        android:textSize="10dp"
+                                        android:lineHeight="12dp"/>
+
+                                    <com.google.android.material.card.MaterialCardView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        app:cardCornerRadius="8dp"
+                                        app:cardBackgroundColor="#FFB9B2"
+                                        android:layout_marginTop="5dp"
+                                        android:layout_marginRight="-1dp">
+
+                                        <TextView
+                                            android:id="@+id/badgeTanah"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:paddingHorizontal="6dp"
+                                            android:paddingVertical="2dp"
+                                            android:fontFamily="@font/baloo2_medium"
+                                            android:text="Warning"
+                                            android:textColor="#FF4F3F"
+                                            android:textSize="8dp"/>
+
+                                    </com.google.android.material.card.MaterialCardView>
+                                </LinearLayout>
+
+                                <TextView
+                                    android:id="@+id/tvNilaiTanah"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
+                                    android:layout_marginTop="8dp"
+                                    android:fontFamily="@font/inter_18pt_semibold"
+                                    android:text="10%"
+                                    android:textColor="#DD961C"
+                                    android:textSize="22dp" />
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:gravity="center">
+
+                                    <TextView
+                                        android:id="@+id/tvRentangTanah"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_gravity="center"
+                                        android:text="-14% "
+                                        android:textColor="#FF4F3F"
+                                        android:fontFamily="@font/inter_18pt_semibold"
+                                        android:textSize="8dp" />
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_gravity="center"
+                                        android:text="| Rentang: 24,8%-31,8%"
+                                        android:textColor="#646464"
+                                        android:fontFamily="@font/inter_18pt_semibold"
+                                        android:textSize="8dp" />
+                                </LinearLayout>
+
+                                <ProgressBar
+                                    android:id="@+id/pbTanah"
+                                    style="?android:attr/progressBarStyleHorizontal"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="6dp"
+                                    android:layout_marginTop="8dp"
+                                    android:progress="43"
+                                    android:progressTint="@color/black" />
+
+                                <TextView
+                                    android:id="@+id/tvTingkatTanah"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
+                                    android:layout_marginTop="4dp"
+                                    android:fontFamily="@font/inter_18pt_semibold"
+                                    android:text="Tingkat: 43%"
+                                    android:textSize="10dp"
+                                    android:textColor="#646464"/>
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="6dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="12dp"
+                            app:cardCornerRadius="20dp"
+                            app:cardElevation="6dp"
+                            app:strokeColor="#848484"
+                            app:strokeWidth="1.5dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:padding="12dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal">
+
+                                    <ImageView
+                                        android:layout_width="28dp"
+                                        android:layout_height="28dp"
+                                        android:src="@drawable/ic_kapasitasair" />
+
+                                    <TextView
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginStart="5dp"
+                                        android:layout_weight="1"
+                                        android:fontFamily="@font/baloo2_medium"
+                                        android:text="Kapasitas Air"
+                                        android:textColor="@color/black"
+                                        android:textSize="12dp"
+                                        android:lineHeight="14dp" />
+
+                                    <com.google.android.material.card.MaterialCardView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        app:cardCornerRadius="8dp"
+                                        app:cardBackgroundColor="#A5FF9D"
+                                        android:layout_marginTop="5dp"
+                                        android:layout_marginRight="-1dp">
+
+                                        <TextView
+                                            android:id="@+id/badgeAir"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:paddingHorizontal="6dp"
+                                            android:paddingVertical="2dp"
+                                            android:fontFamily="@font/baloo2_medium"
+                                            android:text="Normal"
+                                            android:textColor="#107432"
+                                            android:textSize="8dp"/>
+
+                                    </com.google.android.material.card.MaterialCardView>
+                                </LinearLayout>
+
+                                <TextView
+                                    android:id="@+id/tvNilaiAir"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
+                                    android:layout_marginTop="8dp"
+                                    android:fontFamily="@font/inter_18pt_semibold"
+                                    android:text="90%"
+                                    android:textColor="#0580F4"
+                                    android:textSize="22dp" />
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:gravity="center">
+
+                                    <TextView
+                                        android:id="@+id/tvRentangAir"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_gravity="center"
+                                        android:text="+5% "
+                                        android:textColor="#35AF2B"
+                                        android:fontFamily="@font/inter_18pt_semibold"
+                                        android:textSize="8dp" />
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_gravity="center"
+                                        android:text="| Rentang: 70%-100%"
+                                        android:textColor="#646464"
+                                        android:fontFamily="@font/inter_18pt_semibold"
+                                        android:textSize="8dp" />
+                                </LinearLayout>
+
+                                <ProgressBar
+                                    android:id="@+id/pbAir"
+                                    style="?android:attr/progressBarStyleHorizontal"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="6dp"
+                                    android:layout_marginTop="8dp"
+                                    android:progress="78"
+                                    android:progressTint="@color/black" />
+
+                                <TextView
+                                    android:id="@+id/tvTingkatAir"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
+                                    android:layout_marginTop="4dp"
+                                    android:fontFamily="@font/inter_18pt_semibold"
+                                    android:text="Tingkat: 78%"
+                                    android:textSize="10dp"
+                                    android:textColor="#646464" />
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="12dp"
+                            app:cardCornerRadius="20dp"
+                            app:cardElevation="6dp"
+                            app:strokeColor="#848484"
+                            app:strokeWidth="1.5dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:padding="12dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal">
+
+                                    <ImageView
+                                        android:layout_width="28dp"
+                                        android:layout_height="28dp"
+                                        android:src="@drawable/ic_tds" />
+
+                                    <TextView
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginStart="5dp"
+                                        android:layout_weight="1"
+                                        android:layout_marginTop="4dp"
+                                        android:fontFamily="@font/baloo2_medium"
+                                        android:text="TDS"
+                                        android:textColor="@color/black"
+                                        android:textSize="13dp"
+                                        android:lineHeight="14dp" />
+
+                                    <com.google.android.material.card.MaterialCardView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        app:cardCornerRadius="8dp"
+                                        app:cardBackgroundColor="#A5FF9D"
+                                        android:layout_marginTop="5dp"
+                                        android:layout_marginRight="-1dp">
+
+                                        <TextView
+                                            android:id="@+id/badgeTds"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:paddingHorizontal="6dp"
+                                            android:paddingVertical="2dp"
+                                            android:fontFamily="@font/baloo2_medium"
+                                            android:text="Normal"
+                                            android:textColor="#107432"
+                                            android:textSize="8dp"/>
+
+                                    </com.google.android.material.card.MaterialCardView>
+                                </LinearLayout>
+
+                                <TextView
+                                    android:id="@+id/tvNilaiTds"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
+                                    android:layout_marginTop="8dp"
+                                    android:fontFamily="@font/inter_18pt_semibold"
+                                    android:text="850 PPM"
+                                    android:textColor="#3F6CCC"
+                                    android:textSize="22dp" />
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:gravity="center">
+
+                                    <TextView
+                                        android:id="@+id/tvRentangTds"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_gravity="center"
+                                        android:text="+10 PPM "
+                                        android:textColor="#35AF2B"
+                                        android:fontFamily="@font/inter_18pt_semibold"
+                                        android:textSize="8dp" />
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_gravity="center"
+                                        android:text="| Rentang: 840-1050 PPM"
+                                        android:textColor="#646464"
+                                        android:fontFamily="@font/inter_18pt_semibold"
+                                        android:textSize="7dp" />
+                                </LinearLayout>
+
+                                <ProgressBar
+                                    android:id="@+id/pbTds"
+                                    style="?android:attr/progressBarStyleHorizontal"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="6dp"
+                                    android:layout_marginTop="8dp"
+                                    android:progress="84"
+                                    android:progressTint="@color/black" />
+
+                                <TextView
+                                    android:id="@+id/tvTingkatTds"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
+                                    android:layout_marginTop="4dp"
+                                    android:fontFamily="@font/inter_18pt_semibold"
+                                    android:text="Tingkat: 84%"
+                                    android:textSize="10dp"
+                                    android:textColor="#646464" />
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+
+                    </LinearLayout>
+                </LinearLayout>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="6dp"
+                    app:strokeColor="#848484"
+                    app:strokeWidth="1.5dp">
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="16dp">
+
+                        <ImageView
+                            android:id="@+id/icPompa"
+                            android:layout_width="38dp"
+                            android:layout_height="38dp"
+                            android:src="@drawable/ic_pompaair"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <TextView
+                            android:id="@+id/titlePompa"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:fontFamily="@font/baloo2_medium"
+                            android:text="Kontrol Pompa Air"
+                            android:textColor="@color/black"
+                            android:textSize="15dp"
+                            app:layout_constraintStart_toEndOf="@id/icPompa"
+                            app:layout_constraintTop_toTopOf="@id/icPompa" />
+
+                        <LinearLayout
+                            android:id="@+id/layoutStatusPompa"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginTop="2dp"
+                            app:layout_constraintStart_toStartOf="@id/titlePompa"
+                            app:layout_constraintTop_toBottomOf="@id/titlePompa">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/baloo2_regular"
+                                android:text="Status Pompa: "
+                                android:textColor="#000000"
+                                android:textSize="13dp" />
+
+                            <TextView
+                                android:id="@+id/tvStatusPompaValue"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/baloo2_regular"
+                                android:text="OFF"
+                                android:textColor="#FF4F3F"
+                                android:textSize="12dp" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            app:layout_constraintStart_toStartOf="@id/titlePompa"
+                            app:layout_constraintTop_toBottomOf="@id/layoutStatusPompa">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Mode: "
+                                android:fontFamily="@font/baloo2_regular"
+                                android:textColor="#000000"
+                                android:textSize="14dp"
+                                android:layout_marginEnd="6dp"/>
+
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                app:cardBackgroundColor="@color/white"
+                                app:cardCornerRadius="20dp"
+                                app:cardElevation="0dp"
+                                app:strokeColor="#1DD90D"
+                                app:strokeWidth="1dp">
+
+                                <TextView
+                                    android:id="@+id/btnPompaAuto"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:paddingHorizontal="12dp"
+                                    android:paddingVertical="2dp"
+                                    android:text="Auto"
+                                    android:textColor="#1DD90D"
+                                    android:textSize="12sp"
+                                    android:fontFamily="@font/baloo2_regular"/>
+
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                app:cardBackgroundColor="@color/white"
+                                app:cardCornerRadius="20dp"
+                                app:cardElevation="0dp"
+                                app:strokeColor="#666666"
+                                app:strokeWidth="1dp">
+
+                                <TextView
+                                    android:id="@+id/btnPompaManual"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:paddingHorizontal="12dp"
+                                    android:paddingVertical="2dp"
+                                    android:text="Manual"
+                                    android:textColor="#858585"
+                                    android:textSize="12sp"
+                                    android:fontFamily="@font/baloo2_regular"/>
+
+                            </com.google.android.material.card.MaterialCardView>
+                        </LinearLayout>
+
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/switchPompa"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+                </com.google.android.material.card.MaterialCardView>
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="6dp"
+                    app:strokeColor="#848484"
+                    app:strokeWidth="1.5dp">
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="16dp">
+
+                        <ImageView
+                            android:id="@+id/icParanet"
+                            android:layout_width="38dp"
+                            android:layout_height="38dp"
+                            android:src="@drawable/ic_paranet"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <TextView
+                            android:id="@+id/titleParanet"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:fontFamily="@font/baloo2_medium"
+                            android:text="Kontrol Paranet"
+                            android:textColor="@color/black"
+                            android:textSize="15dp"
+                            app:layout_constraintStart_toEndOf="@id/icParanet"
+                            app:layout_constraintTop_toTopOf="@id/icParanet" />
+
+                        <LinearLayout
+                            android:id="@+id/layoutStatusParanet"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginTop="2dp"
+                            app:layout_constraintStart_toStartOf="@id/titleParanet"
+                            app:layout_constraintTop_toBottomOf="@id/titleParanet">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/baloo2_regular"
+                                android:text="Status Paranet: "
+                                android:textColor="@color/black"
+                                android:textSize="13dp" />
+
+                            <TextView
+                                android:id="@+id/tvStatusParanetValue"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/baloo2_regular"
+                                android:text="OFF"
+                                android:textColor="#FF4F3F"
+                                android:textSize="12dp" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            app:layout_constraintStart_toStartOf="@id/titleParanet"
+                            app:layout_constraintTop_toBottomOf="@id/layoutStatusParanet">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Mode: "
+                                android:fontFamily="@font/baloo2_regular"
+                                android:textColor="#000000"
+                                android:textSize="13dp"
+                                android:layout_marginEnd="6dp"/>
+
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                app:cardBackgroundColor="@color/white"
+                                app:cardCornerRadius="20dp"
+                                app:cardElevation="0dp"
+                                app:strokeColor="#1DD90D"
+                                app:strokeWidth="1dp">
+
+                                <TextView
+                                    android:id="@+id/btnParanetAuto"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:paddingHorizontal="12dp"
+                                    android:paddingVertical="2dp"
+                                    android:text="Auto"
+                                    android:textColor="#1DD90D"
+                                    android:textSize="12sp"
+                                    android:fontFamily="@font/baloo2_regular"/>
+
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                app:cardBackgroundColor="@color/white"
+                                app:cardCornerRadius="20dp"
+                                app:cardElevation="0dp"
+                                app:strokeColor="#666666"
+                                app:strokeWidth="1dp">
+
+                                <TextView
+                                    android:id="@+id/btnParanetManual"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:paddingHorizontal="12dp"
+                                    android:paddingVertical="2dp"
+                                    android:text="Manual"
+                                    android:textColor="#858585"
+                                    android:textSize="12sp"
+                                    android:fontFamily="@font/baloo2_regular"/>
+
+                            </com.google.android.material.card.MaterialCardView>
+                        </LinearLayout>
+
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/switchParanet"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+
+            </LinearLayout>
+        </ScrollView>
+    </androidx.cardview.widget.CardView>
+
+    <LinearLayout
+        android:id="@+id/bottomNavigation"
+        android:layout_width="match_parent"
+        android:layout_height="75dp"
+        android:background="#FFFFFF"
+        android:elevation="16dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:id="@+id/navBeranda"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:cardBackgroundColor="#D6FFD2"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp">
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="18dp"
+                    android:paddingVertical="8dp">
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_home"
+                        app:tint="#17BA09" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:fontFamily="@font/baloo2_semibold"
+                        android:text="Beranda"
+                        android:textColor="#17BA09"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/navGrafik"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/chart"
+                app:tint="#777777" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="@font/inter_18pt_regular"
+                android:text="Grafik"
+                android:textColor="#777777"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/navNotifikasi"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:layout_width="26dp"
+                android:layout_height="20dp"
+                android:clipChildren="false"
+                android:clipToPadding="false">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="bottom|start"
+                    android:src="@drawable/notification"
+                    app:tint="#777777" /> <com.google.android.material.card.MaterialCardView
+                android:id="@+id/tvBadgeFooter"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:layout_gravity="top|end"
+                app:cardBackgroundColor="#FF0000"
+                app:cardCornerRadius="6dp"
+                app:cardElevation="0dp">
+
+                <TextView
+                    android:id="@+id/tvBadgeAngka"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="2"
+                    android:textColor="#FFFFFF"
+                    android:textSize="7sp"
+                    android:textStyle="bold" />
+            </com.google.android.material.card.MaterialCardView>
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="@font/inter_18pt_regular"
+                android:text="Notifikasi"
+                android:textColor="#777777"
+                android:textSize="12dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/navProfil"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/user"
+                app:tint="#777777" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="@font/inter_18pt_regular"
+                android:text="Profil"
+                android:textColor="#777777"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

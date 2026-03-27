@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "410714199490",
+    "project_id": "aplikasigrow",
+    "storage_bucket": "aplikasigrow.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:410714199490:android:732b434866c88b6318f25b",
+        "android_client_info": {
+          "package_name": "edu.uph.m23si1.aplikasigrow"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAI1T_0Jh9uSwxt3RAo4LWS2h_s737sfSg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

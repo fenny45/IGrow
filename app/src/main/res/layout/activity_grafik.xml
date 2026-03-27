@@ -1,0 +1,766 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F2F7FF">
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardBackgroundColor="#FFFFFF"
+        app:cardElevation="6dp"
+        app:shapeAppearanceOverlay="@style/SudutBawahMelengkung"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="24dp"
+            android:paddingVertical="16dp">
+
+            <ImageView
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:src="@drawable/chart2" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="18dp"
+                android:layout_marginTop="4dp"
+                android:fontFamily="@font/baloo2_semibold"
+                android:text="GRAFIK"
+                android:textColor="@color/black"
+                android:textSize="22sp" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <LinearLayout
+        android:id="@+id/tabLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/header">
+
+        <LinearLayout
+            android:id="@+id/tabGrafik"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/tvTabGrafik"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/baloo2_semibold"
+                android:text="Grafik"
+                android:textColor="#1ACC0A"
+                android:textSize="18sp"
+                android:shadowColor="#50000000"
+                android:shadowDx="0"
+                android:shadowDy="2"
+                android:shadowRadius="4" />
+            <View
+                android:id="@+id/lineGrafik"
+                android:layout_width="70dp"
+                android:layout_height="3dp"
+                android:layout_marginTop="6dp"
+                android:background="#1ACC0A" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/tabRiwayat"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/tvTabRiwayat"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/baloo2_semibold"
+                android:text="Riwayat"
+                android:textColor="#777777"
+                android:textSize="18sp"
+                android:shadowColor="#50000000"
+                android:shadowDx="0"
+                android:shadowDy="2"
+                android:shadowRadius="4" />
+            <View
+                android:id="@+id/lineRiwayat"
+                android:layout_width="70dp"
+                android:layout_height="3dp"
+                android:layout_marginTop="6dp"
+                android:background="#00000000" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:paddingBottom="24dp"
+        app:layout_constraintBottom_toTopOf="@+id/bottomNavigation"
+        app:layout_constraintTop_toBottomOf="@id/tabLayout">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="20dp"
+            android:paddingTop="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp"
+                android:clipToPadding="false"
+                android:padding="4dp">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="18dp"
+                    app:cardElevation="2dp">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="6dp">
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/cardFilter1"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            app:cardBackgroundColor="#D6FFD2"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="0dp">
+                            <TextView
+                                android:id="@+id/tvFilter1"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:paddingHorizontal="16dp"
+                                android:paddingVertical="8dp"
+                                android:text="Hari ini"
+                                android:textColor="#17BA09"
+                                android:fontFamily="@font/baloo2_semibold"
+                                android:textSize="14sp"/>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/cardFilter2"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            app:cardBackgroundColor="#00000000"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="0dp">
+                            <TextView
+                                android:id="@+id/tvFilter2"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:paddingHorizontal="16dp"
+                                android:paddingVertical="8dp"
+                                android:text="7 Hari"
+                                android:textColor="#777777"
+                                android:fontFamily="@font/baloo2_semibold"
+                                android:textSize="14sp"/>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/cardFilter3"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            app:cardBackgroundColor="#00000000"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="0dp">
+                            <TextView
+                                android:id="@+id/tvFilter3"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:paddingHorizontal="16dp"
+                                android:paddingVertical="8dp"
+                                android:text="Bulan"
+                                android:textColor="#777777"
+                                android:fontFamily="@font/baloo2_semibold"
+                                android:textSize="14sp"/>
+                        </com.google.android.material.card.MaterialCardView>
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"/>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/btnCalendar"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/calendar"
+                        app:tint="#848484"/>
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/layoutGrafik"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="6dp"
+                    app:cardBackgroundColor="@color/white">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="20dp">
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <com.google.android.material.card.MaterialCardView
+                                android:id="@+id/bgIcCahaya"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                app:cardBackgroundColor="#FFF5CC"
+                                app:cardCornerRadius="18dp">
+                                <ImageView
+                                    android:layout_width="25dp"
+                                    android:layout_height="25dp"
+                                    android:layout_gravity="center"
+                                    android:src="@drawable/sun" />
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:layout_toEndOf="@id/bgIcCahaya"
+                                android:layout_marginStart="12dp"
+                                android:layout_centerVertical="true">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Intensitas Cahaya"
+                                    android:textColor="@color/black"
+                                    android:fontFamily="@font/baloo2_semibold"
+                                    android:textSize="16sp"/>
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Puncak: 80.000 Lux"
+                                    android:textColor="#858585"
+                                    android:fontFamily="@font/baloo2_medium"
+                                    android:textSize="12sp"
+                                    android:layout_marginTop="-5dp"/>
+                            </LinearLayout>
+
+                            <TextView
+                                android:id="@+id/tvValCahaya"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:text="8.450 Lux"
+                                android:textColor="#ECB800"
+                                android:fontFamily="@font/baloo2_semibold"
+                                android:textSize="16sp"/>
+                        </RelativeLayout>
+
+                        <com.github.mikephil.charting.charts.LineChart
+                            android:id="@+id/chartCahaya"
+                            android:layout_width="match_parent"
+                            android:layout_height="140dp"
+                            android:layout_marginTop="16dp"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="6dp"
+                    app:cardBackgroundColor="@color/white">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="20dp">
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <com.google.android.material.card.MaterialCardView
+                                android:id="@+id/bgIcAir"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                app:cardBackgroundColor="#DBEAFE"
+                                app:cardCornerRadius="18dp">
+                                <ImageView
+                                    android:layout_width="25dp"
+                                    android:layout_height="25dp"
+                                    android:layout_gravity="center"
+                                    android:src="@drawable/water_waves"
+                                    app:tint="#3B82F6" />
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:layout_toEndOf="@id/bgIcAir"
+                                android:layout_marginStart="12dp"
+                                android:layout_centerVertical="true">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Kapasitas Air"
+                                    android:textColor="@color/black"
+                                    android:fontFamily="@font/baloo2_semibold"
+                                    android:textSize="16sp"/>
+                                <TextView
+                                    android:id="@+id/tvStatusAir"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Status: Aman"
+                                    android:textColor="#858585"
+                                    android:fontFamily="@font/baloo2_medium"
+                                    android:textSize="12sp"
+                                    android:layout_marginTop="-5dp"/>
+                            </LinearLayout>
+
+                            <TextView
+                                android:id="@+id/tvValAir"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:text="90%"
+                                android:textColor="#3B82F6"
+                                android:fontFamily="@font/baloo2_semibold"
+                                android:textSize="16sp"/>
+                        </RelativeLayout>
+                        <com.github.mikephil.charting.charts.LineChart
+                            android:id="@+id/chartAir"
+                            android:layout_width="match_parent"
+                            android:layout_height="140dp"
+                            android:layout_marginTop="16dp"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="6dp"
+                    app:cardBackgroundColor="@color/white">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="20dp">
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <com.google.android.material.card.MaterialCardView
+                                android:id="@+id/bgIcSuhu"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                app:cardBackgroundColor="#FEE2E2"
+                                app:cardCornerRadius="18dp">
+                                <ImageView
+                                    android:layout_width="25dp"
+                                    android:layout_height="25dp"
+                                    android:layout_gravity="center"
+                                    android:src="@drawable/temperature" />
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:layout_toEndOf="@id/bgIcSuhu"
+                                android:layout_marginStart="12dp"
+                                android:layout_centerVertical="true">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Suhu Udara"
+                                    android:textColor="@color/black"
+                                    android:fontFamily="@font/baloo2_semibold"
+                                    android:textSize="16sp"/>
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Rentang: 10°-38°C"
+                                    android:textColor="#858585"
+                                    android:fontFamily="@font/baloo2_medium"
+                                    android:textSize="12sp"
+                                    android:layout_marginTop="-5dp"/>
+                            </LinearLayout>
+
+                            <TextView
+                                android:id="@+id/tvValSuhu"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:text="30.5°C"
+                                android:textColor="#EF4444"
+                                android:fontFamily="@font/baloo2_semibold"
+                                android:textSize="16sp"/>
+                        </RelativeLayout>
+
+                        <com.github.mikephil.charting.charts.LineChart
+                            android:id="@+id/chartSuhu"
+                            android:layout_width="match_parent"
+                            android:layout_height="140dp"
+                            android:layout_marginTop="16dp"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="6dp"
+                    app:cardBackgroundColor="@color/white">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="20dp">
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+                            <com.google.android.material.card.MaterialCardView
+                                android:id="@+id/bgIcTanah"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                app:cardBackgroundColor="#FFE1AD"
+                                app:cardCornerRadius="18dp">
+                                <ImageView
+                                    android:layout_width="25dp"
+                                    android:layout_height="25dp"
+                                    android:layout_gravity="center"
+                                    android:src="@drawable/meter" />
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:layout_toEndOf="@id/bgIcTanah"
+                                android:layout_marginStart="12dp"
+                                android:layout_centerVertical="true">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Kelembapan Tanah"
+                                    android:textColor="@color/black"
+                                    android:fontFamily="@font/baloo2_semibold"
+                                    android:textSize="16sp"/>
+                                <TextView
+                                    android:id="@+id/tvStatusTanah"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Status: Perlu Siram"
+                                    android:textColor="#858585"
+                                    android:fontFamily="@font/baloo2_medium"
+                                    android:textSize="12sp"
+                                    android:layout_marginTop="-5dp"/>
+                            </LinearLayout>
+
+                            <TextView
+                                android:id="@+id/tvValTanah"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:text="10 %"
+                                android:textColor="#DD961C"
+                                android:fontFamily="@font/baloo2_semibold"
+                                android:textSize="16sp"/>
+                        </RelativeLayout>
+                        <com.github.mikephil.charting.charts.LineChart
+                            android:id="@+id/chartTanah"
+                            android:layout_width="match_parent"
+                            android:layout_height="140dp"
+                            android:layout_marginTop="16dp"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="6dp"
+                    app:cardBackgroundColor="#FFFFFF">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="20dp">
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+                            <com.google.android.material.card.MaterialCardView
+                                android:id="@+id/bgIcTds"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                app:cardBackgroundColor="#F3E8FF"
+                                app:cardCornerRadius="18dp">
+                                <ImageView
+                                    android:layout_width="25dp"
+                                    android:layout_height="25dp"
+                                    android:layout_gravity="center"
+                                    android:src="@drawable/potion" />
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:layout_toEndOf="@id/bgIcTds"
+                                android:layout_marginStart="12dp"
+                                android:layout_centerVertical="true">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Kadar TDS"
+                                    android:textColor="@color/black"
+                                    android:fontFamily="@font/baloo2_semibold"
+                                    android:textSize="16sp"/>
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Rentang: 840 - 1050 ppm"
+                                    android:textColor="#858585"
+                                    android:fontFamily="@font/baloo2_medium"
+                                    android:textSize="12sp"
+                                    android:layout_marginTop="-5dp"/>
+                            </LinearLayout>
+
+                            <TextView
+                                android:id="@+id/tvValTds"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:text="880 ppm"
+                                android:textColor="#A855F7"
+                                android:fontFamily="@font/baloo2_semibold"
+                                android:textSize="16sp"/>
+                        </RelativeLayout>
+                        <com.github.mikephil.charting.charts.LineChart
+                            android:id="@+id/chartTds"
+                            android:layout_width="match_parent"
+                            android:layout_height="140dp"
+                            android:layout_marginTop="16dp"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/layoutRiwayat"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/tvTanggalRiwayat"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Hari ini, 14 Maret 2026"
+                    android:fontFamily="@font/baloo2_medium"
+                    android:textColor="#666666"
+                    android:layout_marginBottom="12dp"/>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvRiwayat"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/bottomNavigation"
+        android:layout_width="match_parent"
+        android:layout_height="75dp"
+        android:background="#FFFFFF"
+        android:elevation="16dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:id="@+id/navBeranda"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_home"
+                app:tint="#777777" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="@font/inter_18pt_regular"
+                android:text="Beranda"
+                android:textColor="#777777"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/navGrafik"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:cardBackgroundColor="#D6FFD2"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp">
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="18dp"
+                    android:paddingVertical="8dp">
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/chart"
+                        app:tint="#17BA09" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:fontFamily="@font/baloo2_semibold"
+                        android:text="Grafik"
+                        android:textColor="#17BA09"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/navNotifikasi"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:layout_width="26dp"
+                android:layout_height="20dp"
+                android:clipChildren="false"
+                android:clipToPadding="false">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="bottom|start"
+                    android:src="@drawable/notification"
+                    app:tint="#777777" />
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/tvBadgeFooter"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_gravity="top|end"
+                    app:cardBackgroundColor="#FF0000"
+                    app:cardCornerRadius="6dp"
+                    app:cardElevation="0dp">
+
+                    <TextView
+                        android:id="@+id/tvBadgeAngka"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="2"
+                        android:textColor="#FFFFFF"
+                        android:textSize="7sp"
+                        android:textStyle="bold" />
+                </com.google.android.material.card.MaterialCardView>
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="@font/inter_18pt_regular"
+                android:text="Notifikasi"
+                android:textColor="#777777"
+                android:textSize="12dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/navProfil"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/user"
+                app:tint="#777777" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="@font/inter_18pt_regular"
+                android:text="Profil"
+                android:textColor="#777777"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
