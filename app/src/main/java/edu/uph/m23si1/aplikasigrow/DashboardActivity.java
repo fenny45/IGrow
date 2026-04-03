@@ -1,4 +1,4 @@
-package edu.uph.m23si1.aplikasigrow;
+package edu.uph.m23si1.aplikasigrow; // WAJIB GANTI SESUAI PACKAGE KAMU
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -206,21 +206,35 @@ public class DashboardActivity extends AppCompatActivity {
                         if (DataGlobal.statusSuhuBahaya) { DataGlobal.tambahNotifOtomatis(2, "Suhu Kembali Normal", "Suhu udara sudah stabil di " + suhu + "°C."); DataGlobal.statusSuhuBahaya = false; }
                     }
 
-                    // ================= 2. TANAH =================
+                    // ================= 2. TANAH (UPDATE KERING & BASAH) =================
                     tvNilaiTanah.setText((int)tanah + "%");
                     pbTanah.setProgress((int) tanah);
                     tvTingkatTanah.setText("Tingkat: " + (int)tanah + "%");
 
-                    if (tanah < 24.8 || tanah > 31.8) {
-                        String rentangTanah = tanah < 24.8 ? String.format("- %.1f%% ", (24.8 - tanah)) : String.format("+ %.1f%% ", (tanah - 31.8));
-                        setKondisiMerahAtauHijau(badgeTanah, tvRentangTanah, tanah < 24.8 ? "Warning" : "T. Tinggi", rentangTanah, false);
+                    if (tanah < 24.8) {
+                        String rentangTanah = String.format("- %.1f%% ", (24.8 - tanah));
+                        setKondisiMerahAtauHijau(badgeTanah, tvRentangTanah, "Kering", rentangTanah, false);
 
-                        isiPeringatan.append("• Masalah Kelembapan Tanah!\n"); adaBahayaHalamanIni = true;
-                        DataGlobal.tambahNotifOtomatis(1, "Kelembapan Tanah Tidak Normal", "Kelembapan tanah berada di " + (int)tanah + "%.");
+                        isiPeringatan.append("• Tanah Terlalu Kering!\n");
+                        adaBahayaHalamanIni = true;
+                        DataGlobal.tambahNotifOtomatis(1, "Kelembapan Tanah Rendah", "Tanah sangat kering berada di " + (int)tanah + "%.");
                         DataGlobal.statusTanahBahaya = true;
+
+                    } else if (tanah > 31.8) {
+                        String rentangTanah = String.format("+ %.1f%% ", (tanah - 31.8));
+                        setKondisiMerahAtauHijau(badgeTanah, tvRentangTanah, "Basah", rentangTanah, false);
+
+                        isiPeringatan.append("• Tanah Terlalu Basah!\n");
+                        adaBahayaHalamanIni = true;
+                        DataGlobal.tambahNotifOtomatis(1, "Kelembapan Tanah Berlebih", "Tanah sangat basah berada di " + (int)tanah + "%.");
+                        DataGlobal.statusTanahBahaya = true;
+
                     } else {
                         setKondisiMerahAtauHijau(badgeTanah, tvRentangTanah, "Normal", "+ 0% ", true);
-                        if (DataGlobal.statusTanahBahaya) { DataGlobal.tambahNotifOtomatis(2, "Kelembapan Tanah Normal", "Tanah sudah cukup air (" + (int)tanah + "%)."); DataGlobal.statusTanahBahaya = false; }
+                        if (DataGlobal.statusTanahBahaya) {
+                            DataGlobal.tambahNotifOtomatis(2, "Kelembapan Tanah Normal", "Tanah sudah pada kondisi ideal (" + (int)tanah + "%).");
+                            DataGlobal.statusTanahBahaya = false;
+                        }
                     }
 
                     // ================= 3. AIR =================
@@ -262,27 +276,27 @@ public class DashboardActivity extends AppCompatActivity {
                     pbCahaya.setProgress((int) ((cahaya / 120000.0) * 100));
 
                     if (cahaya < 80000) {
-                        tvKondisiCahaya.setText("Rendah");
+                        tvKondisiCahaya.setText("Redup");
                         tvStatusCahaya.setText("WARNING");
                         tvStatusCahaya.setTextColor(Color.parseColor("#FF4F3F"));
-                        isiPeringatan.append("• Cahaya Kurang / Rendah!\n");
+                        isiPeringatan.append("• Cahaya Kurang / Redup!\n");
                         adaBahayaHalamanIni = true;
 
                         DataGlobal.tambahNotifOtomatis(1, "Cahaya Kurang", "Intensitas cahaya hanya " + (int)cahaya + " Lux.");
                         DataGlobal.statusCahayaBahaya = true;
                     }
                     else if (cahaya > 100000) {
-                        tvKondisiCahaya.setText("Tinggi");
-                        tvStatusCahaya.setText("T. TINGGI");
+                        tvKondisiCahaya.setText("Sangat Terang");
+                        tvStatusCahaya.setText("T. Terang");
                         tvStatusCahaya.setTextColor(Color.parseColor("#FF4F3F"));
                         isiPeringatan.append("• Cahaya Terlalu Tinggi!\n");
                         adaBahayaHalamanIni = true;
 
-                        DataGlobal.tambahNotifOtomatis(1, "Cahaya Terik Ekstrem", "Cahaya terlalu Tinggi (" + (int)cahaya + " Lux).");
+                        DataGlobal.tambahNotifOtomatis(1, "Cahaya Terik Ekstrem", "Cahaya terlalu Terang (" + (int)cahaya + " Lux).");
                         DataGlobal.statusCahayaBahaya = true;
                     }
                     else {
-                        tvKondisiCahaya.setText("Sedang");
+                        tvKondisiCahaya.setText("Terang");
                         tvStatusCahaya.setText("NORMAL");
                         tvStatusCahaya.setTextColor(Color.parseColor("#107432"));
 
@@ -305,17 +319,20 @@ public class DashboardActivity extends AppCompatActivity {
                     if (statPompa == null) statPompa = false;
 
                     if ("auto".equals(modePompa)) {
-                        // PERBAIKAN: Gunakan setClickable agar warna tidak pucat
-                        switchPompa.setClickable(false);
+                        switchPompa.setClickable(false); // Kunci switch manual
 
-                        boolean pompaHarusNyala = (tanah < 24.8);
+                        // Pompa menyala JIKA tanah kering (< 24.8) DAN air di tangki ada (> 0)
+                        boolean tanahKering = (tanah < 24.8);
+                        boolean tangkiAdaAir = (air > 0);
+
+                        boolean pompaHarusNyala = (tanahKering && tangkiAdaAir);
+
                         if (statPompa != pompaHarusNyala) {
                             databaseRef.child("aktuator/pompa/status").setValue(pompaHarusNyala);
                         }
-                        statPompa = pompaHarusNyala; // Sync UI seketika
+                        statPompa = pompaHarusNyala;
                     } else {
-                        // Buka kembali kuncinya jika mode manual
-                        switchPompa.setClickable(true);
+                        switchPompa.setClickable(true); // Buka kunci manual
                     }
 
                     // Update tampilan Pompa
@@ -332,17 +349,14 @@ public class DashboardActivity extends AppCompatActivity {
                     if (statParanet == null) statParanet = false;
 
                     if ("auto".equals(modeParanet)) {
-                        // PERBAIKAN: Gunakan setClickable agar warna tidak pucat
-                        switchParanet.setClickable(false);
-
+                        switchParanet.setClickable(false); // Kunci switch manual
                         boolean paranetHarusNyala = (suhu > 38);
                         if (statParanet != paranetHarusNyala) {
                             databaseRef.child("aktuator/paranet/status").setValue(paranetHarusNyala);
                         }
-                        statParanet = paranetHarusNyala; // Sync UI seketika
+                        statParanet = paranetHarusNyala;
                     } else {
-                        // Buka kembali kuncinya jika mode manual
-                        switchParanet.setClickable(true);
+                        switchParanet.setClickable(true); // Buka kunci manual
                     }
 
                     // Update tampilan Paranet

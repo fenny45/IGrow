@@ -1,7 +1,6 @@
 package edu.uph.m23si1.aplikasigrow;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
@@ -12,11 +11,20 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 
 import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.HashMap;
 
 public class EditProfileActivity extends AppCompatActivity {
 
@@ -26,7 +34,9 @@ public class EditProfileActivity extends AppCompatActivity {
     private Spinner spinnerGender;
 
     private String uriFotoTersimpan = "";
+
     private FirebaseAuth mAuth;
+    private DatabaseReference userRef;
 
     private final ActivityResultLauncher<Intent> ambilFotoGaleri = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -51,18 +61,20 @@ public class EditProfileActivity extends AppCompatActivity {
         if (getSupportActionBar() != null) getSupportActionBar().hide();
 
         mAuth = FirebaseAuth.getInstance();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+
+        if (currentUser != null) {
+            userRef = FirebaseDatabase.getInstance().getReference("Users").child(currentUser.getUid());
+        } else {
+            Toast.makeText(this, "Sesi habis, silakan login ulang", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
 
         inisialisasiViews();
         setupSpinnerGender();
-        loadDataTerdahulu();
+        loadDataDariFirebase();
         setupAksiTombol();
-    }
-
-    private SharedPreferences getPrefs() {
-        SharedPreferences loginSession = getSharedPreferences("LoginSession", MODE_PRIVATE);
-        String userEmail = loginSession.getString("email", "default");
-        String fileName = "iGrowPrefs_" + userEmail.replace(".", "_");
-        return getSharedPreferences(fileName, MODE_PRIVATE);
     }
 
     private void inisialisasiViews() {
@@ -73,10 +85,11 @@ public class EditProfileActivity extends AppCompatActivity {
         etNama = findViewById(R.id.etNama);
         etEmail = findViewById(R.id.etEmail);
 
-        // --- EMAIL SEKARANG DIBUKA KEMBALI AGAR BISA DIEDIT ---
-        etEmail.setEnabled(true);
-        etEmail.setFocusableInTouchMode(true);
-        etEmail.setFocusable(true);
+        // --- KUNCI EMAIL AGAR TIDAK BISA DIEDIT (READ-ONLY) ---
+        etEmail.setEnabled(false);
+        etEmail.setFocusable(false);
+        etEmail.setFocusableInTouchMode(false);
+        etEmail.setCursorVisible(false);
 
         etKontak = findViewById(R.id.etKontak);
         spinnerGender = findViewById(R.id.spinnerGender);
@@ -94,26 +107,32 @@ public class EditProfileActivity extends AppCompatActivity {
         spinnerGender.setAdapter(adapter);
     }
 
-    private void loadDataTerdahulu() {
-        SharedPreferences prefs = getPrefs();
+    private void loadDataDariFirebase() {
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    etNama.setText(snapshot.child("nama").getValue(String.class));
+                    etEmail.setText(snapshot.child("email").getValue(String.class));
+                    etKontak.setText(snapshot.child("kontak").getValue(String.class));
+                    etUsia.setText(snapshot.child("usia").getValue(String.class));
+                    etAlamat.setText(snapshot.child("alamat").getValue(String.class));
+                    etBio.setText(snapshot.child("bio").getValue(String.class));
 
-        etNama.setText(prefs.getString("nama", "USER"));
-        etKontak.setText(prefs.getString("kontak", ""));
-        etUsia.setText(prefs.getString("usia", ""));
-        etAlamat.setText(prefs.getString("alamat", ""));
-        etBio.setText(prefs.getString("bio", "Halo! Saya pengguna baru iGrow."));
-        etEmail.setText(prefs.getString("email", "User@gmail.com"));
+                    String gender = snapshot.child("gender").getValue(String.class);
+                    if (gender != null && gender.equals("Laki-laki")) spinnerGender.setSelection(1);
+                    else spinnerGender.setSelection(0);
 
-        String genderTersimpan = prefs.getString("gender", "Perempuan");
-        if (genderTersimpan.equals("Laki-laki")) spinnerGender.setSelection(1);
-        else spinnerGender.setSelection(0);
-
-        uriFotoTersimpan = prefs.getString("foto_profil", "");
-        if (!uriFotoTersimpan.isEmpty()) {
-            ivProfile.setImageURI(Uri.parse(uriFotoTersimpan));
-        } else {
-            ivProfile.setImageResource(R.drawable.user); // Pastikan R.drawable.user ada
-        }
+                    uriFotoTersimpan = snapshot.child("foto_profil").getValue(String.class);
+                    if (uriFotoTersimpan != null && !uriFotoTersimpan.isEmpty()) {
+                        ivProfile.setImageURI(Uri.parse(uriFotoTersimpan));
+                    } else {
+                        ivProfile.setImageResource(R.drawable.user); // Pastikan R.drawable.user ada
+                    }
+                }
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        });
     }
 
     private void setupAksiTombol() {
@@ -127,72 +146,33 @@ public class EditProfileActivity extends AppCompatActivity {
             ambilFotoGaleri.launch(intent);
         });
 
-        btnSimpan.setOnClickListener(v -> {
-            String emailYangDiinput = etEmail.getText().toString().trim();
-
-            if (emailYangDiinput.isEmpty()) {
-                etEmail.setError("Email tidak boleh kosong");
-                etEmail.requestFocus();
-                return;
-            }
-
-            simpanDataLokalCerdas(emailYangDiinput);
-        });
+        btnSimpan.setOnClickListener(v -> simpanKeFirebase());
     }
 
-    // --- MIGRASI DATA JIKA EMAIL BERUBAH ---
-    private void simpanDataLokalCerdas(String emailBaru) {
-        SharedPreferences loginSession = getSharedPreferences("LoginSession", MODE_PRIVATE);
-        String emailLama = loginSession.getString("email", "default");
+    // --- LOGIKA SIMPAN SEDERHANA (TANPA GANTI EMAIL) ---
+    private void simpanKeFirebase() {
+        // Kumpulkan data profil (Email tidak perlu disimpan ulang karena tidak berubah)
+        HashMap<String, Object> dataUpdate = new HashMap<>();
+        dataUpdate.put("nama", etNama.getText().toString());
+        dataUpdate.put("kontak", etKontak.getText().toString());
+        dataUpdate.put("usia", etUsia.getText().toString());
+        dataUpdate.put("alamat", etAlamat.getText().toString());
+        dataUpdate.put("bio", etBio.getText().toString());
+        dataUpdate.put("gender", spinnerGender.getSelectedItem().toString());
+        dataUpdate.put("foto_profil", uriFotoTersimpan != null ? uriFotoTersimpan : "");
 
-        // Jika user mengganti emailnya
-        if (!emailLama.equals(emailBaru)) {
-            // 1. Panggil Lemari Lama
-            String oldFileName = "iGrowPrefs_" + emailLama.replace(".", "_");
-            SharedPreferences oldPrefs = getSharedPreferences(oldFileName, MODE_PRIVATE);
+        btnSimpan.setEnabled(false);
 
-            // Ambil password lama agar tidak hilang! (Sangat Krusial)
-            String passwordLama = oldPrefs.getString("password", "");
-
-            // 2. Buat Lemari Baru
-            String newFileName = "iGrowPrefs_" + emailBaru.replace(".", "_");
-            SharedPreferences newPrefs = getSharedPreferences(newFileName, MODE_PRIVATE);
-            SharedPreferences.Editor newEditor = newPrefs.edit();
-
-            // 3. Pindahkan semua data ke lemari baru
-            newEditor.putString("nama", etNama.getText().toString());
-            newEditor.putString("email", emailBaru);
-            newEditor.putString("password", passwordLama); // Masukkan password ke lemari baru
-            newEditor.putString("kontak", etKontak.getText().toString());
-            newEditor.putString("usia", etUsia.getText().toString());
-            newEditor.putString("alamat", etAlamat.getText().toString());
-            newEditor.putString("bio", etBio.getText().toString());
-            newEditor.putString("gender", spinnerGender.getSelectedItem().toString());
-            newEditor.putString("foto_profil", uriFotoTersimpan);
-            newEditor.apply();
-
-            // 4. Update Sesi Login agar aplikasi sadar emailnya sudah baru
-            loginSession.edit().putString("email", emailBaru).apply();
-
-            // 5. Hapus lemari lama (Opsional, agar memori HP tidak penuh)
-            oldPrefs.edit().clear().apply();
-
-        } else {
-            // Jika user HANYA mengganti nama/bio dll (Email tetap sama)
-            SharedPreferences.Editor editor = getPrefs().edit();
-            editor.putString("nama", etNama.getText().toString());
-            editor.putString("email", emailBaru);
-            editor.putString("kontak", etKontak.getText().toString());
-            editor.putString("usia", etUsia.getText().toString());
-            editor.putString("alamat", etAlamat.getText().toString());
-            editor.putString("bio", etBio.getText().toString());
-            editor.putString("gender", spinnerGender.getSelectedItem().toString());
-            editor.putString("foto_profil", uriFotoTersimpan);
-            editor.apply();
-        }
-
-        Toast.makeText(this, "Profil berhasil diperbarui!", Toast.LENGTH_SHORT).show();
-        tutupHalaman();
+        // Langsung lempar ke Database
+        userRef.updateChildren(dataUpdate).addOnCompleteListener(dbTask -> {
+            if (dbTask.isSuccessful()) {
+                Toast.makeText(this, "Profil berhasil diperbarui!", Toast.LENGTH_SHORT).show();
+                tutupHalaman();
+            } else {
+                btnSimpan.setEnabled(true);
+                Toast.makeText(this, "Gagal menyimpan profil", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void tutupHalaman() {

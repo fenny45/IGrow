@@ -1,7 +1,6 @@
-package edu.uph.m23si1.aplikasigrow;
+package edu.uph.m23si1.aplikasigrow; // WAJIB GANTI DENGAN PACKAGE KAMU
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
@@ -9,10 +8,18 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 
 import com.google.android.material.card.MaterialCardView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class ProfilActivity extends AppCompatActivity {
 
@@ -29,6 +36,10 @@ public class ProfilActivity extends AppCompatActivity {
     private TextView tvNamaUser, tvEmailUser, tvBio;
     private ImageView ivProfile;
 
+    // --- DEKLARASI FIREBASE ---
+    private FirebaseAuth mAuth;
+    private DatabaseReference userRef;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
@@ -37,26 +48,25 @@ public class ProfilActivity extends AppCompatActivity {
 
         if (getSupportActionBar() != null) getSupportActionBar().hide();
 
+        // --- INISIALISASI FIREBASE ---
+        mAuth = FirebaseAuth.getInstance();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+
+        // Cari folder "Users" lalu masuk ke folder dengan UID milik user yang sedang login
+        if (currentUser != null) {
+            userRef = FirebaseDatabase.getInstance().getReference("Users").child(currentUser.getUid());
+        }
+
         inisialisasiViews();
         setupMenuAksi();
         setupFooterNavigasi();
-    }
-
-    private SharedPreferences getPrefs() {
-        // Ambil email user yang sedang login sekarang
-        SharedPreferences loginSession = getSharedPreferences("LoginSession", MODE_PRIVATE);
-        String userEmail = loginSession.getString("email", "default");
-
-        // Nama file sekarang menjadi: iGrowPrefs_user_email_com
-        String fileName = "iGrowPrefs_" + userEmail.replace(".", "_");
-        return getSharedPreferences(fileName, MODE_PRIVATE);
     }
 
     // --- UPDATE DATA & BADGE SECARA REAL-TIME SAAT HALAMAN DIBUKA ---
     @Override
     protected void onResume() {
         super.onResume();
-        loadDataProfil();
+        loadDataDariFirebase(); // Panggil fungsi ambil data dari awan
         updateBadgeNotifikasi();
     }
 
@@ -93,22 +103,37 @@ public class ProfilActivity extends AppCompatActivity {
         }
     }
 
-    private void loadDataProfil() {
-        SharedPreferences prefs = getPrefs(); // Menggunakan file unik user
+    // --- LOGIKA BARU: TARIK DATA DARI FIREBASE REALTIME DATABASE ---
+    private void loadDataDariFirebase() {
+        if (userRef != null) {
+            userRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        // Ambil data satu per satu dari Firebase
+                        String nama = snapshot.child("nama").getValue(String.class);
+                        String email = snapshot.child("email").getValue(String.class);
+                        String bio = snapshot.child("bio").getValue(String.class);
+                        String fotoLink = snapshot.child("foto_profil").getValue(String.class);
 
-        String nama = prefs.getString("nama", "User Baru");
-        String email = prefs.getString("email", "Email belum diset");
-        String bio = prefs.getString("bio", "Belum ada bio.");
-        String fotoLink = prefs.getString("foto_profil", "");
+                        // Tampilkan ke layar (Jika kosong, beri nilai default)
+                        tvNamaUser.setText(nama != null ? nama : "User");
+                        tvEmailUser.setText(email != null ? email : "Email");
+                        tvBio.setText(bio != null ? bio : "Belum ada bio.");
 
-        tvNamaUser.setText(nama);
-        tvEmailUser.setText(email);
-        tvBio.setText(bio);
+                        if (fotoLink != null && !fotoLink.isEmpty()) {
+                            ivProfile.setImageURI(android.net.Uri.parse(fotoLink));
+                        } else {
+                            ivProfile.setImageResource(R.drawable.user); // Pastikan ada R.drawable.user
+                        }
+                    }
+                }
 
-        if (!fotoLink.isEmpty()) {
-            ivProfile.setImageURI(android.net.Uri.parse(fotoLink));
-        } else {
-            ivProfile.setImageResource(R.drawable.user); // Pastikan ada R.drawable.user di folder drawable
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Toast.makeText(ProfilActivity.this, "Gagal mengambil profil: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
         }
     }
 
@@ -133,12 +158,15 @@ public class ProfilActivity extends AppCompatActivity {
         });
 
         btnLogout.setOnClickListener(v -> {
-            // Hapus session login
-            SharedPreferences session = getSharedPreferences("LoginSession", MODE_PRIVATE);
-            session.edit().clear().apply();
+            // --- LOGOUT DARI FIREBASE ---
+            if (mAuth != null) {
+                mAuth.signOut();
+            }
+
+            // Hapus session login lokal untuk berjaga-jaga
+            getSharedPreferences("LoginSession", MODE_PRIVATE).edit().clear().apply();
 
             // --- RESET SEMUA MEMORI DATAGLOBAL ---
-            // Agar jika ada user lain yang login di HP ini, datanya tidak tercampur
             DataGlobal.listNotifikasi.clear();
             DataGlobal.listRiwayatGlobal.clear();
             DataGlobal.isInitialized = false;

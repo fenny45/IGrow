@@ -1,4 +1,4 @@
-package edu.uph.m23si1.aplikasigrow;
+package edu.uph.m23si1.aplikasigrow; // WAJIB GANTI DENGAN PACKAGE KAMU
 
 import android.app.DatePickerDialog;
 import android.content.Intent;
@@ -388,9 +388,6 @@ public class GrafikActivity extends AppCompatActivity {
         chart.invalidate();
     }
 
-    // =================================================================
-    // FUNGSI PENGHASIL DATA GRAFIK CERDAS (TIDAK MENEMBUS MASA DEPAN)
-    // =================================================================
     private ArrayList<Entry> dataGrafikGenerator(int count, int min, int max, int mode) {
         ArrayList<Entry> e = new ArrayList<>();
         Calendar now = Calendar.getInstance();
@@ -451,19 +448,19 @@ public class GrafikActivity extends AppCompatActivity {
                         }
                     }
 
-                    // 2. TANAH
+                    // 2. TANAH (SINKRON DENGAN DASHBOARD: KERING & BASAH)
                     if (tanah < 24.8) {
-                        tvStatusTanah.setText("Status: Perlu Siram"); tvStatusTanah.setTextColor(Color.parseColor("#FF4F3F"));
-                        DataGlobal.tambahNotifOtomatis(1, "Kelembapan Tanah Rendah", "Kelembapan turun jadi " + (int)tanah + "%. Disarankan untuk menyiram.");
+                        tvStatusTanah.setText("Status: Kering"); tvStatusTanah.setTextColor(Color.parseColor("#FF4F3F"));
+                        DataGlobal.tambahNotifOtomatis(1, "Kelembapan Tanah Rendah", "Tanah sangat kering berada di " + (int)tanah + "%.");
                         DataGlobal.statusTanahBahaya = true;
                     } else if (tanah > 31.8) {
-                        tvStatusTanah.setText("Status: Terlalu Basah"); tvStatusTanah.setTextColor(Color.parseColor("#FF4F3F"));
-                        DataGlobal.tambahNotifOtomatis(1, "Kelembapan Tanah Berlebih", "Tanah sangat basah (" + (int)tanah + "%).");
+                        tvStatusTanah.setText("Status: Basah"); tvStatusTanah.setTextColor(Color.parseColor("#FF4F3F"));
+                        DataGlobal.tambahNotifOtomatis(1, "Kelembapan Tanah Berlebih", "Tanah sangat basah berada di " + (int)tanah + "%.");
                         DataGlobal.statusTanahBahaya = true;
                     } else {
-                        tvStatusTanah.setText("Status: Optimal"); tvStatusTanah.setTextColor(Color.parseColor("#858585"));
+                        tvStatusTanah.setText("Status: Normal"); tvStatusTanah.setTextColor(Color.parseColor("#858585"));
                         if (DataGlobal.statusTanahBahaya) {
-                            DataGlobal.tambahNotifOtomatis(2, "Kelembapan Tanah Normal", "Tanah sudah cukup air (" + (int)tanah + "%).");
+                            DataGlobal.tambahNotifOtomatis(2, "Kelembapan Tanah Normal", "Tanah sudah pada kondisi ideal (" + (int)tanah + "%).");
                             DataGlobal.statusTanahBahaya = false;
                         }
                     }
@@ -486,25 +483,22 @@ public class GrafikActivity extends AppCompatActivity {
                         DataGlobal.statusTdsBahaya = false;
                     }
 
-                    // 5. CAHAYA (SINKRON: < 80rb Warning, > 100rb Tinggi)
+                    // 5. CAHAYA
                     if (cahaya < 80000) {
                         DataGlobal.tambahNotifOtomatis(1, "Cahaya Kurang", "Intensitas cahaya hanya " + (int)cahaya + " Lux.");
                         DataGlobal.statusCahayaBahaya = true;
                     } else if (cahaya > 100000) {
-                        DataGlobal.tambahNotifOtomatis(1, "Cahaya Terik Ekstrem", "Cahaya terlalu panas (" + (int)cahaya + " Lux).");
+                        DataGlobal.tambahNotifOtomatis(1, "Cahaya Terik Ekstrem", "Cahaya terlalu terang (" + (int)cahaya + " Lux).");
                         DataGlobal.statusCahayaBahaya = true;
                     } else {
-                        // KONDISI OPTIMAL (80.000 - 100.000)
                         if (DataGlobal.statusCahayaBahaya) {
                             DataGlobal.tambahNotifOtomatis(2, "Cahaya Kembali Normal", "Cahaya sudah berada di titik optimal.");
                             DataGlobal.statusCahayaBahaya = false;
                         }
                     }
 
-                    // Update Badge Footer secara Real-time
                     updateBadgeUI();
 
-                    // Segarkan list di Tab Riwayat agar langsung muncul notif barunya
                     if(!isModeGrafik) perbaruiDataTampilan(currentMode);
                 }
             }
