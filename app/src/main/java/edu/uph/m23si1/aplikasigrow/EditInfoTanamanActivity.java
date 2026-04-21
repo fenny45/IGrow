@@ -1,8 +1,7 @@
-package edu.uph.m23si1.aplikasigrow;
+package edu.uph.m23si1.aplikasigrow; // WAJIB GANTI SESUAI PACKAGE KAMU
 
-import android.content.SharedPreferences;
+import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
@@ -13,6 +12,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 
 import com.google.android.material.card.MaterialCardView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class EditInfoTanamanActivity extends AppCompatActivity {
 
@@ -22,6 +29,10 @@ public class EditInfoTanamanActivity extends AppCompatActivity {
     private EditText etJadwalPenyiraman, etTahapPertumbuhan, etCatatanTanaman;
     private Spinner spinnerTempat, spinnerKategori;
 
+    // --- DEKLARASI FIRESTORE ---
+    private FirebaseAuth mAuth;
+    private DocumentReference tanamanRef;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
@@ -30,19 +41,22 @@ public class EditInfoTanamanActivity extends AppCompatActivity {
 
         if (getSupportActionBar() != null) getSupportActionBar().hide();
 
+        mAuth = FirebaseAuth.getInstance();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+
+        if (currentUser != null) {
+            // Mengarahkan penyimpanan ke Firebase Firestore
+            tanamanRef = FirebaseFirestore.getInstance()
+                    .collection("Users")
+                    .document(currentUser.getUid())
+                    .collection("Tanaman")
+                    .document("Info");
+        }
+
         inisialisasiViews();
         setupSpinners();
-        loadDataTerdahulu();
+        loadDataDariFirestore();
         setupAksiTombol();
-    }
-
-    // --- FUNGSI KUNCI LEMARI TANAMAN UNIK (SANGAT PENTING) ---
-    private SharedPreferences getTanamanPrefs() {
-        SharedPreferences loginSession = getSharedPreferences("LoginSession", MODE_PRIVATE);
-        String userEmail = loginSession.getString("email", "default");
-        // Nama file unik: iGrowTanamanPrefs_user_email_com
-        String fileName = "iGrowTanamanPrefs_" + userEmail.replace(".", "_");
-        return getSharedPreferences(fileName, MODE_PRIVATE);
     }
 
     private void inisialisasiViews() {
@@ -75,39 +89,48 @@ public class EditInfoTanamanActivity extends AppCompatActivity {
         spinnerKategori.setAdapter(adapterKategori);
     }
 
-    private void loadDataTerdahulu() {
-        // Mengambil dari lemari unik milik user yang sedang login
-        SharedPreferences prefs = getTanamanPrefs();
+    private void loadDataDariFirestore() {
+        if (tanamanRef == null) return;
 
-        // Menggunakan Nilai Default yang umum untuk User Baru
-        String nama = prefs.getString("nama_tanaman", "Belum Ada Tanaman");
-        String spesies = prefs.getString("spesies", "-");
-        String tempat = prefs.getString("tipe_lingkungan", "Outdoor");
-        String kategori = prefs.getString("kategori", "Sayur");
+        tanamanRef.get().addOnSuccessListener(snapshot -> {
+            if (snapshot.exists()) {
+                String nama = snapshot.getString("nama_tanaman");
+                String spesies = snapshot.getString("spesies");
+                String tempat = snapshot.getString("tipe_lingkungan");
+                String kategori = snapshot.getString("kategori");
 
-        // Update Label Pratinjau
-        tvLabelNama.setText(nama);
-        tvLabelSpesies.setText(spesies);
-        tvLabelTipe.setText(tempat);
+                if (nama == null || nama.isEmpty()) nama = "Belum Ada Tanaman";
+                if (spesies == null || spesies.isEmpty()) spesies = "-";
+                if (tempat == null || tempat.isEmpty()) tempat = "Outdoor";
+                if (kategori == null || kategori.isEmpty()) kategori = "Sayur";
 
-        // Update Form Input
-        etNamaTanaman.setText(nama);
-        etSpesies.setText(spesies);
-        etUmurTanaman.setText(prefs.getString("umur", "-"));
-        etLokasiTanam.setText(prefs.getString("lokasi", "-"));
-        etJadwalPenyiraman.setText(prefs.getString("jadwal", "-"));
-        etTahapPertumbuhan.setText(prefs.getString("tahap", "-"));
-        etCatatanTanaman.setText(prefs.getString("catatan", "Silahkan isi informasi tanaman Anda."));
+                tvLabelNama.setText(nama);
+                tvLabelSpesies.setText(spesies);
+                tvLabelTipe.setText(tempat);
 
-        // Atur Spinner Posisi
-        if (tempat.equals("Indoor")) spinnerTempat.setSelection(1);
-        else if (tempat.equals("Greenhouse")) spinnerTempat.setSelection(2);
-        else spinnerTempat.setSelection(0);
+                etNamaTanaman.setText(nama.equals("Belum Ada Tanaman") ? "" : nama);
+                etSpesies.setText(spesies.equals("-") ? "" : spesies);
 
-        if (kategori.equals("Buah")) spinnerKategori.setSelection(1);
-        else if (kategori.equals("Hias")) spinnerKategori.setSelection(2);
-        else if (kategori.equals("Obat")) spinnerKategori.setSelection(3);
-        else spinnerKategori.setSelection(0);
+                etUmurTanaman.setText(snapshot.getString("umur"));
+                etLokasiTanam.setText(snapshot.getString("lokasi"));
+                etJadwalPenyiraman.setText(snapshot.getString("jadwal"));
+                etTahapPertumbuhan.setText(snapshot.getString("tahap"));
+
+                String catatan = snapshot.getString("catatan");
+                etCatatanTanaman.setText(catatan != null ? catatan : "Silahkan isi informasi tanaman Anda.");
+
+                if (tempat.equals("Indoor")) spinnerTempat.setSelection(1);
+                else if (tempat.equals("Greenhouse")) spinnerTempat.setSelection(2);
+                else spinnerTempat.setSelection(0);
+
+                if (kategori.equals("Buah")) spinnerKategori.setSelection(1);
+                else if (kategori.equals("Hias")) spinnerKategori.setSelection(2);
+                else if (kategori.equals("Obat")) spinnerKategori.setSelection(3);
+                else spinnerKategori.setSelection(0);
+            }
+        }).addOnFailureListener(e -> {
+            Toast.makeText(this, "Gagal memuat data: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        });
     }
 
     private void setupAksiTombol() {
@@ -115,23 +138,45 @@ public class EditInfoTanamanActivity extends AppCompatActivity {
         btnBatal.setOnClickListener(v -> tutupHalaman());
 
         btnSimpan.setOnClickListener(v -> {
-            // Simpan kembali ke lemari unik user
-            SharedPreferences.Editor editor = getTanamanPrefs().edit();
+            if (tanamanRef != null) {
+                // Kunci tombol agar tidak ditekan berkali-kali
+                btnSimpan.setEnabled(false);
+                Toast.makeText(this, "Menyimpan data ke server...", Toast.LENGTH_SHORT).show();
 
-            editor.putString("nama_tanaman", etNamaTanaman.getText().toString());
-            editor.putString("spesies", etSpesies.getText().toString());
-            editor.putString("tipe_lingkungan", spinnerTempat.getSelectedItem().toString());
-            editor.putString("umur", etUmurTanaman.getText().toString());
-            editor.putString("lokasi", etLokasiTanam.getText().toString());
-            editor.putString("jadwal", etJadwalPenyiraman.getText().toString());
-            editor.putString("tahap", etTahapPertumbuhan.getText().toString());
-            editor.putString("kategori", spinnerKategori.getSelectedItem().toString());
-            editor.putString("catatan", etCatatanTanaman.getText().toString());
+                Map<String, Object> data = new HashMap<>();
+                data.put("nama_tanaman", etNamaTanaman.getText().toString());
+                data.put("spesies", etSpesies.getText().toString());
+                data.put("tipe_lingkungan", spinnerTempat.getSelectedItem().toString());
+                data.put("umur", etUmurTanaman.getText().toString());
+                data.put("lokasi", etLokasiTanam.getText().toString());
+                data.put("jadwal", etJadwalPenyiraman.getText().toString());
+                data.put("tahap", etTahapPertumbuhan.getText().toString());
+                data.put("kategori", spinnerKategori.getSelectedItem().toString());
+                data.put("catatan", etCatatanTanaman.getText().toString());
 
-            editor.apply();
+                // Proses menyimpan ke Firestore dengan respon Sukses & Gagal yang jelas
+                tanamanRef.set(data, SetOptions.merge())
+                        .addOnSuccessListener(aVoid -> {
+                            // JIKA BERHASIL TERSIMPAN DI SERVER
+                            Toast.makeText(this, "Berhasil diperbarui!", Toast.LENGTH_SHORT).show();
 
-            Toast.makeText(this, "Informasi Tanaman berhasil diperbarui!", Toast.LENGTH_SHORT).show();
-            tutupHalaman();
+                            // Memaksa pindah ke halaman Info Tanaman
+                            Intent pindah = new Intent(EditInfoTanamanActivity.this, InfoTanamanActivity.class);
+                            pindah.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(pindah);
+
+                            // Tutup halaman edit
+                            finish();
+                        })
+                        .addOnFailureListener(e -> {
+                            // JIKA GAGAL TERSIMPAN (Koneksi buruk / Rules diblokir)
+                            btnSimpan.setEnabled(true);
+                            Toast.makeText(this, "ERROR Firestore: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        });
+
+            } else {
+                Toast.makeText(this, "Sesi Firebase tidak valid, coba Login ulang.", Toast.LENGTH_LONG).show();
+            }
         });
     }
 

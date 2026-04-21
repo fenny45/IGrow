@@ -39,36 +39,36 @@ public class NotifikasiActivity extends AppCompatActivity {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_notifikasi);
+
         if (getSupportActionBar() != null) getSupportActionBar().hide();
 
-        // Fokus memantau langsung ke dalam folder sensor
         databaseRef = FirebaseDatabase.getInstance().getReference("iGrow_Data/sensor");
-
-        DataGlobal.initDataAwal(); // Panggil pusat memori
+        DataGlobal.initDataAwal();
 
         inisialisasiViews();
         setupRecyclerView();
         setupTombolAksi();
         setupFooter();
-        pantauSensorDariFirebase();
 
+        pantauSensorDariFirebase();
         hitungBadgeUnread();
     }
 
-    // --- FUNGSI BARU: Menyegarkan badge notifikasi saat kembali ke halaman ini ---
     @Override
     protected void onResume() {
         super.onResume();
         hitungBadgeUnread();
-        if(adapter != null) adapter.notifyDataSetChanged();
+        if (adapter != null) adapter.notifyDataSetChanged();
     }
 
     private void inisialisasiViews() {
         rvNotifikasi = findViewById(R.id.rvNotifikasi);
         btnMarkAllRead = findViewById(R.id.btnMarkAllRead);
         btnDeleteAll = findViewById(R.id.btnDeleteAll);
+
         tvBadgeFooter = findViewById(R.id.tvBadgeFooter);
         tvBadgeAngka = findViewById(R.id.tvBadgeAngka);
+
         navBeranda = findViewById(R.id.navBeranda);
         navGrafik = findViewById(R.id.navGrafik);
         navProfil = findViewById(R.id.navProfil);
@@ -80,9 +80,8 @@ public class NotifikasiActivity extends AppCompatActivity {
         adapter = new AdapterNotifikasi(DataGlobal.listNotifikasi, new AdapterNotifikasi.OnItemClickListener() {
             @Override
             public void onDeleteClick(int position) {
-                // HANYA menghapus dari layar notifikasi, Riwayat di Grafik tetap aman
                 DataGlobal.listNotifikasi.remove(position);
-                adapter.notifyItemRemoved(position);
+                adapter.notifyDataSetChanged();
                 hitungBadgeUnread();
             }
 
@@ -112,73 +111,109 @@ public class NotifikasiActivity extends AppCompatActivity {
         });
     }
 
-
     private void pantauSensorDariFirebase() {
         databaseRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if(snapshot.exists()) {
+                if (snapshot.exists()) {
                     double suhu = getDouble(snapshot, "suhu");
                     double tanah = getDouble(snapshot, "tanah");
                     double air = getDouble(snapshot, "air");
                     double tds = getDouble(snapshot, "tds");
-                    double cahaya = getDouble(snapshot, "cahaya");
 
-                    int ukuranAwal = DataGlobal.listNotifikasi.size();
+                    if (DataGlobal.lastAlertSuhu == -999) DataGlobal.lastAlertSuhu = suhu;
+                    if (DataGlobal.lastAlertTanah == -999) DataGlobal.lastAlertTanah = tanah;
+                    if (DataGlobal.lastAlertAir == -999) DataGlobal.lastAlertAir = air;
+                    if (DataGlobal.lastAlertTds == -999) DataGlobal.lastAlertTds = tds;
 
-                    // --- LOGIKA NOTIFIKASI SENSOR ---
-                    // Suhu
-                    if (suhu < 10 || suhu > 38) {
-                        DataGlobal.tambahNotifOtomatis(1, "Suhu Udara Tidak Normal", "Suhu saat ini " + suhu + "°C.");
-                        DataGlobal.statusSuhuBahaya = true;
+                    boolean adaUpdateBaru = false;
+
+                    // ================= 1. SUHU =================
+                    if (suhu > 38.0) {
+                        if (!DataGlobal.statusSuhuBahaya || Math.abs(suhu - DataGlobal.lastAlertSuhu) >= 2.0) {
+                            DataGlobal.tambahNotifOtomatis(1, "Suhu Udara Terlalu Panas", "Suhu melonjak ke " + suhu + "°C.");
+                            DataGlobal.statusSuhuBahaya = true;
+                            DataGlobal.lastAlertSuhu = suhu;
+                            adaUpdateBaru = true;
+                        }
+                    } else if (suhu < 10.0) {
+                        if (!DataGlobal.statusSuhuBahaya || Math.abs(suhu - DataGlobal.lastAlertSuhu) >= 2.0) {
+                            DataGlobal.tambahNotifOtomatis(1, "Suhu Udara Terlalu Dingin", "Suhu drop ke " + suhu + "°C.");
+                            DataGlobal.statusSuhuBahaya = true;
+                            DataGlobal.lastAlertSuhu = suhu;
+                            adaUpdateBaru = true;
+                        }
                     } else if (DataGlobal.statusSuhuBahaya) {
-                        DataGlobal.tambahNotifOtomatis(2, "Suhu Kembali Normal", "Suhu udara sudah stabil di " + suhu + "°C.");
+                        DataGlobal.tambahNotifOtomatis(2, "Suhu Udara Normal", "Suhu stabil di " + suhu + "°C.");
                         DataGlobal.statusSuhuBahaya = false;
+                        DataGlobal.lastAlertSuhu = suhu;
+                        adaUpdateBaru = true;
                     }
 
-                    // Tanah
-                    if (tanah < 24.8 || tanah > 31.8) {
-                        DataGlobal.tambahNotifOtomatis(1, "Kelembapan Tanah Tidak Normal", "Tanah berada di angka " + (int)tanah + "%.");
-                        DataGlobal.statusTanahBahaya = true;
+                    // ================= 2. TANAH =================
+                    if (tanah < 24.8) {
+                        if (!DataGlobal.statusTanahBahaya || Math.abs(tanah - DataGlobal.lastAlertTanah) >= 5.0) {
+                            DataGlobal.tambahNotifOtomatis(1, "Tanah Sangat Kering", "Kelembapan drop ke " + (int)tanah + "%.");
+                            DataGlobal.statusTanahBahaya = true;
+                            DataGlobal.lastAlertTanah = tanah;
+                            adaUpdateBaru = true;
+                        }
+                    } else if (tanah > 31.8) {
+                        if (!DataGlobal.statusTanahBahaya || Math.abs(tanah - DataGlobal.lastAlertTanah) >= 5.0) {
+                            DataGlobal.tambahNotifOtomatis(1, "Tanah Terlalu Basah", "Kelembapan naik ke " + (int)tanah + "%.");
+                            DataGlobal.statusTanahBahaya = true;
+                            DataGlobal.lastAlertTanah = tanah;
+                            adaUpdateBaru = true;
+                        }
                     } else if (DataGlobal.statusTanahBahaya) {
-                        DataGlobal.tambahNotifOtomatis(2, "Kelembapan Tanah Normal", "Tanah sudah cukup air (" + (int)tanah + "%).");
+                        DataGlobal.tambahNotifOtomatis(2, "Kelembapan Tanah Normal", "Tanah ideal di (" + (int)tanah + "%).");
                         DataGlobal.statusTanahBahaya = false;
+                        DataGlobal.lastAlertTanah = tanah;
+                        adaUpdateBaru = true;
                     }
 
-                    // Air
+                    // ================= 3. AIR =================
                     if (air < 70) {
-                        DataGlobal.tambahNotifOtomatis(1, "Air Tangki Menipis", "Kapasitas air sisa " + (int)air + "%.");
-                        DataGlobal.statusAirBahaya = true;
+                        if (!DataGlobal.statusAirBahaya || Math.abs(air - DataGlobal.lastAlertAir) >= 10.0) {
+                            DataGlobal.tambahNotifOtomatis(1, "Air Tangki Menipis", "Air sisa " + (int)air + "%.");
+                            DataGlobal.statusAirBahaya = true;
+                            DataGlobal.lastAlertAir = air;
+                            adaUpdateBaru = true;
+                        }
                     } else if (DataGlobal.statusAirBahaya) {
-                        DataGlobal.tambahNotifOtomatis(2, "Pasokan Air Normal", "Tangki air sudah terisi kembali.");
+                        DataGlobal.tambahNotifOtomatis(2, "Air Tangki Normal", "Tangki terisi penuh.");
                         DataGlobal.statusAirBahaya = false;
+                        DataGlobal.lastAlertAir = air;
+                        adaUpdateBaru = true;
                     }
 
-                    // Cahaya
-                    if (cahaya < 40000 || cahaya > 100000) {
-                        DataGlobal.tambahNotifOtomatis(1, "Intensitas Cahaya Tidak Ideal", "Cahaya terdeteksi " + (int)cahaya + " Lux.");
-                        DataGlobal.statusCahayaBahaya = true;
-                    } else if (DataGlobal.statusCahayaBahaya) {
-                        DataGlobal.tambahNotifOtomatis(2, "Cahaya Kembali Normal", "Intensitas cahaya sudah ideal (" + (int)cahaya + " Lux).");
-                        DataGlobal.statusCahayaBahaya = false;
+                    // ================= 4. TDS =================
+                    if (tds < 840) {
+                        if (!DataGlobal.statusTdsBahaya || Math.abs(tds - DataGlobal.lastAlertTds) >= 50) {
+                            DataGlobal.tambahNotifOtomatis(1, "Nutrisi TDS Rendah", "TDS anjlok ke " + (int)tds + " PPM.");
+                            DataGlobal.statusTdsBahaya = true;
+                            DataGlobal.lastAlertTds = tds;
+                            adaUpdateBaru = true;
+                        }
+                    } else if (tds > 1050) {
+                        if (!DataGlobal.statusTdsBahaya || Math.abs(tds - DataGlobal.lastAlertTds) >= 50) {
+                            DataGlobal.tambahNotifOtomatis(1, "Nutrisi TDS Berlebih", "TDS melonjak ke " + (int)tds + " PPM.");
+                            DataGlobal.statusTdsBahaya = true;
+                            DataGlobal.lastAlertTds = tds;
+                            adaUpdateBaru = true;
+                        }
+                    } else if (DataGlobal.statusTdsBahaya) {
+                        DataGlobal.tambahNotifOtomatis(2, "Nutrisi TDS Normal", "TDS optimal di " + (int)tds + " PPM.");
+                        DataGlobal.statusTdsBahaya = false;
+                        DataGlobal.lastAlertTds = tds;
+                        adaUpdateBaru = true;
                     }
 
-                    // --- UPDATE TAMPILAN SECARA REAL-TIME ---
-
-                    // 1. Update daftar list jika ada notifikasi baru
-                    if(DataGlobal.listNotifikasi.size() > ukuranAwal) {
+                    if (adaUpdateBaru) {
                         adapter.notifyDataSetChanged();
                         rvNotifikasi.scrollToPosition(0);
+                        hitungBadgeUnread();
                     }
-
-                    // 2. SELALU Update angka badge di footer setiap kali Firebase berubah
-                    // Ini kuncinya agar badge langsung muncul/berubah tanpa perlu pindah footer
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            hitungBadgeUnread();
-                        }
-                    });
                 }
             }
             @Override public void onCancelled(@NonNull DatabaseError error) {}
@@ -208,26 +243,11 @@ public class NotifikasiActivity extends AppCompatActivity {
     }
 
     private void setupFooter() {
-        navBeranda.setOnClickListener(v -> {
-            startActivity(new Intent(NotifikasiActivity.this, DashboardActivity.class));
-            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-            finish();
-        });
-        navGrafik.setOnClickListener(v -> {
-            startActivity(new Intent(NotifikasiActivity.this, GrafikActivity.class));
-            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-            finish();
-        });
-        navProfil.setOnClickListener(v -> {
-            startActivity(new Intent(NotifikasiActivity.this, ProfilActivity.class));
-            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-            finish();
-        });
+        navBeranda.setOnClickListener(v -> { startActivity(new Intent(NotifikasiActivity.this, DashboardActivity.class)); overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out); finish(); });
+        navGrafik.setOnClickListener(v -> { startActivity(new Intent(NotifikasiActivity.this, GrafikActivity.class)); overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out); finish(); });
+        navProfil.setOnClickListener(v -> { startActivity(new Intent(NotifikasiActivity.this, ProfilActivity.class)); overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out); finish(); });
     }
 
     @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-    }
+    public void onBackPressed() { super.onBackPressed(); overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out); }
 }

@@ -1,8 +1,6 @@
-package edu.uph.m23si1.aplikasigrow;
+package edu.uph.m23si1.aplikasigrow; // WAJIB GANTI SESUAI PACKAGE KAMU
 
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -11,66 +9,52 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 
 import com.google.android.material.card.MaterialCardView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class InfoTanamanActivity extends AppCompatActivity {
 
-    // Tombol (MaterialCardView karena di XML pakai MaterialCardView untuk background bundarnya)
     private MaterialCardView btnBack, btnEditTanaman;
-
-    // Gambar
     private ImageView imgTanaman;
 
-    // Teks Informasi
     private TextView tvTipeLingkungan, tvSpesies, tvNamaTanaman;
     private TextView tvUmurTanaman, tvLokasiTanam, tvJadwalPenyiraman;
     private TextView tvTahapPertumbuhan, tvKategoriTanaman, tvCatatanTanaman;
 
-    // Nama file memori HP khusus untuk data tanaman
-    private static final String PREF_TANAMAN = "iGrowTanamanPrefs";
+    // --- DEKLARASI FIRESTORE ---
+    private FirebaseAuth mAuth;
+    private DocumentReference tanamanRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // Paksa aplikasi ke mode terang
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_info_tanaman);
 
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().hide();
+        if (getSupportActionBar() != null) getSupportActionBar().hide();
+
+        mAuth = FirebaseAuth.getInstance();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+
+        if (currentUser != null) {
+            // Membaca dari struktur FIRESTORE yang benar
+            tanamanRef = FirebaseFirestore.getInstance()
+                    .collection("Users")
+                    .document(currentUser.getUid())
+                    .collection("Tanaman")
+                    .document("Info");
         }
 
         inisialisasiViews();
         setupAksiTombol();
     }
 
-    // --- SANGAT PENTING: AGAR DATA AUTO-REFRESH SAAT KEMBALI DARI HALAMAN EDIT ---
     @Override
     protected void onResume() {
         super.onResume();
-        loadDataTanaman();
-    }
-
-    // Ganti cara panggil SharedPreferences yang lama
-// Dari: getSharedPreferences("iGrowPrefs", MODE_PRIVATE);
-// Menjadi ini:
-
-    private SharedPreferences getPrefs() {
-        // Ambil email user yang sedang login sekarang (Misal dari FirebaseAuth atau Intent Login)
-        // Kita gunakan email sebagai pembeda nama file agar unik per user
-        SharedPreferences loginSession = getSharedPreferences("LoginSession", MODE_PRIVATE);
-        String userEmail = loginSession.getString("email", "default");
-
-        // Nama file sekarang menjadi: iGrowPrefs_user_email_com
-        String fileName = "iGrowPrefs_" + userEmail.replace(".", "_");
-        return getSharedPreferences(fileName, MODE_PRIVATE);
-    }
-
-    private SharedPreferences getTanamanPrefs() {
-        SharedPreferences loginSession = getSharedPreferences("LoginSession", MODE_PRIVATE);
-        String userEmail = loginSession.getString("email", "default");
-
-        String fileName = "iGrowTanamanPrefs_" + userEmail.replace(".", "_");
-        return getSharedPreferences(fileName, MODE_PRIVATE);
+        loadDataTanamanFirestore();
     }
 
     private void inisialisasiViews() {
@@ -90,50 +74,49 @@ public class InfoTanamanActivity extends AppCompatActivity {
         tvCatatanTanaman = findViewById(R.id.tvCatatanTanaman);
     }
 
-    // --- MENGAMBIL DATA DARI MEMORI HP ---
-    private void loadDataTanaman() {
-        // PERBAIKAN: Gunakan fungsi getTanamanPrefs() agar mengambil lemari unik user
-        SharedPreferences prefs = getTanamanPrefs();
+    private void loadDataTanamanFirestore() {
+        if (tanamanRef == null) return;
 
-        // Nilai default untuk user yang baru mendaftar
-        String nama = prefs.getString("nama_tanaman", "Belum Ada Tanaman");
-        String spesies = prefs.getString("spesies", "-");
-        String tempat = prefs.getString("tipe_lingkungan", "-");
-        String umur = prefs.getString("umur", "-");
-        String lokasi = prefs.getString("lokasi", "-");
-        String jadwal = prefs.getString("jadwal", "-");
-        String tahap = prefs.getString("tahap", "-");
-        String kategori = prefs.getString("kategori", "-");
-        String catatan = prefs.getString("catatan", "Silahkan klik tombol edit untuk mengisi data.");
+        // addSnapshotListener digunakan agar data update secara realtime otomatis
+        tanamanRef.addSnapshotListener((snapshot, error) -> {
+            if (error != null) return;
 
-        // Pasang ke TextView
-        tvNamaTanaman.setText(nama);
-        tvSpesies.setText(spesies);
-        tvTipeLingkungan.setText(tempat);
-        tvUmurTanaman.setText(umur);
-        tvLokasiTanam.setText(lokasi);
-        tvJadwalPenyiraman.setText(jadwal);
-        tvTahapPertumbuhan.setText(tahap);
-        tvKategoriTanaman.setText(kategori);
-        tvCatatanTanaman.setText(catatan);
+            if (snapshot != null && snapshot.exists()) {
+                tvNamaTanaman.setText(getTeks(snapshot.getString("nama_tanaman"), "Belum Ada Tanaman"));
+                tvSpesies.setText(getTeks(snapshot.getString("spesies"), "-"));
+                tvTipeLingkungan.setText(getTeks(snapshot.getString("tipe_lingkungan"), "-"));
+                tvUmurTanaman.setText(getTeks(snapshot.getString("umur"), "-"));
+                tvLokasiTanam.setText(getTeks(snapshot.getString("lokasi"), "-"));
+                tvJadwalPenyiraman.setText(getTeks(snapshot.getString("jadwal"), "-"));
+                tvTahapPertumbuhan.setText(getTeks(snapshot.getString("tahap"), "-"));
+                tvKategoriTanaman.setText(getTeks(snapshot.getString("kategori"), "-"));
+                tvCatatanTanaman.setText(getTeks(snapshot.getString("catatan"), "Silahkan klik tombol edit untuk mengisi data."));
+            } else {
+                tvNamaTanaman.setText("Belum Ada Tanaman");
+                tvSpesies.setText("-");
+                tvTipeLingkungan.setText("-");
+                tvUmurTanaman.setText("-");
+                tvLokasiTanam.setText("-");
+                tvJadwalPenyiraman.setText("-");
+                tvTahapPertumbuhan.setText("-");
+                tvKategoriTanaman.setText("-");
+                tvCatatanTanaman.setText("Silahkan klik tombol edit untuk mengisi data.");
+            }
+            imgTanaman.setImageResource(R.drawable.ladang); // Default image
+        });
+    }
 
-        // Gambar Ladang
-        String uriFoto = prefs.getString("foto_tanaman", "");
-        if (!uriFoto.isEmpty()) {
-            imgTanaman.setImageURI(android.net.Uri.parse(uriFoto));
-        } else {
-            imgTanaman.setImageResource(R.drawable.ladang);
-        }
+    // Fungsi pembantu khusus Firestore untuk menghindari error null
+    private String getTeks(String val, String nilaiDefault) {
+        return (val != null && !val.isEmpty()) ? val : nilaiDefault;
     }
 
     private void setupAksiTombol() {
-        // Tombol Back
         btnBack.setOnClickListener(v -> {
             finish();
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
         });
 
-        // Tombol Edit Tanaman (Pindah ke Halaman Edit)
         btnEditTanaman.setOnClickListener(v -> {
             Intent intent = new Intent(InfoTanamanActivity.this, EditInfoTanamanActivity.class);
             startActivity(intent);

@@ -9,7 +9,7 @@
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/header"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="100dp"
         app:cardBackgroundColor="#FFFFFF"
         app:cardElevation="6dp"
         app:shapeAppearanceOverlay="@style/SudutBawahMelengkung"
@@ -17,7 +17,7 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="70dp"
+            android:layout_height="90dp"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingHorizontal="24dp"
@@ -34,9 +34,9 @@
                 android:layout_marginStart="18dp"
                 android:layout_marginTop="4dp"
                 android:fontFamily="@font/baloo2_semibold"
-                android:text="GRAFIK"
+                android:text="GRAFIK &amp; RIWAYAT"
                 android:textColor="@color/black"
-                android:textSize="22sp" />
+                android:textSize="20sp" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
@@ -123,7 +123,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="8dp"
                 android:clipToPadding="false"
                 android:padding="4dp">
 
@@ -222,84 +222,20 @@
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
 
+            <TextView
+                android:id="@+id/tvTanggalRiwayat"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Data Hari Ini"
+                android:fontFamily="@font/baloo2_medium"
+                android:textColor="#666666"
+                android:layout_marginBottom="12dp"/>
+
             <LinearLayout
                 android:id="@+id/layoutGrafik"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
-
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    app:cardCornerRadius="24dp"
-                    app:cardElevation="6dp"
-                    app:cardBackgroundColor="@color/white">
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="20dp">
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
-
-                            <com.google.android.material.card.MaterialCardView
-                                android:id="@+id/bgIcCahaya"
-                                android:layout_width="40dp"
-                                android:layout_height="40dp"
-                                app:cardBackgroundColor="#FFF5CC"
-                                app:cardCornerRadius="18dp">
-                                <ImageView
-                                    android:layout_width="25dp"
-                                    android:layout_height="25dp"
-                                    android:layout_gravity="center"
-                                    android:src="@drawable/sun" />
-                            </com.google.android.material.card.MaterialCardView>
-
-                            <LinearLayout
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:orientation="vertical"
-                                android:layout_toEndOf="@id/bgIcCahaya"
-                                android:layout_marginStart="12dp"
-                                android:layout_centerVertical="true">
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Intensitas Cahaya"
-                                    android:textColor="@color/black"
-                                    android:fontFamily="@font/baloo2_semibold"
-                                    android:textSize="16sp"/>
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Puncak: 80.000 Lux"
-                                    android:textColor="#858585"
-                                    android:fontFamily="@font/baloo2_medium"
-                                    android:textSize="12sp"
-                                    android:layout_marginTop="-5dp"/>
-                            </LinearLayout>
-
-                            <TextView
-                                android:id="@+id/tvValCahaya"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_alignParentEnd="true"
-                                android:layout_centerVertical="true"
-                                android:text="8.450 Lux"
-                                android:textColor="#ECB800"
-                                android:fontFamily="@font/baloo2_semibold"
-                                android:textSize="16sp"/>
-                        </RelativeLayout>
-
-                        <com.github.mikephil.charting.charts.LineChart
-                            android:id="@+id/chartCahaya"
-                            android:layout_width="match_parent"
-                            android:layout_height="140dp"
-                            android:layout_marginTop="16dp"/>
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
 
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
@@ -599,15 +535,6 @@
                 android:orientation="vertical"
                 android:visibility="gone">
 
-                <TextView
-                    android:id="@+id/tvTanggalRiwayat"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Hari ini, 14 Maret 2026"
-                    android:fontFamily="@font/baloo2_medium"
-                    android:textColor="#666666"
-                    android:layout_marginBottom="12dp"/>
-
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rvRiwayat"
                     android:layout_width="match_parent"
@@ -762,5 +689,4 @@
                 android:textSize="12sp" />
         </LinearLayout>
     </LinearLayout>
-
 </androidx.constraintlayout.widget.ConstraintLayout>

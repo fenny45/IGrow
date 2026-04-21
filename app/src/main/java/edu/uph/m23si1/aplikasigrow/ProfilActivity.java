@@ -175,7 +175,7 @@ public class ProfilActivity extends AppCompatActivity {
             DataGlobal.statusTanahBahaya = false;
             DataGlobal.statusAirBahaya = false;
             DataGlobal.statusTdsBahaya = false;
-            DataGlobal.statusCahayaBahaya = false;
+          
 
             Toast.makeText(this, "Berhasil Keluar", Toast.LENGTH_SHORT).show();
             startActivity(new Intent(this, LoginActivity.class));

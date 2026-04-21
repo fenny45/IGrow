@@ -1,4 +1,4 @@
-package edu.uph.m23si1.aplikasigrow;
+package edu.uph.m23si1.aplikasigrow; // WAJIB GANTI SESUAI PACKAGE KAMU
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -13,12 +13,16 @@ public class DataGlobal {
     public static List<ModelRiwayat> listRiwayatGlobal = new ArrayList<>();
     public static boolean isInitialized = false;
 
-    // --- VARIABEL PENANDA STATUS (Wajib ada agar tidak spam notif normal) ---
     public static boolean statusSuhuBahaya = false;
     public static boolean statusTanahBahaya = false;
     public static boolean statusAirBahaya = false;
     public static boolean statusTdsBahaya = false;
-    public static boolean statusCahayaBahaya = false;
+
+    // Pelacak angka terakhir
+    public static double lastAlertSuhu = -999;
+    public static double lastAlertTanah = -999;
+    public static double lastAlertAir = -999;
+    public static double lastAlertTds = -999;
 
     public static void initDataAwal() {
         if (!isInitialized) {
@@ -29,66 +33,47 @@ public class DataGlobal {
     }
 
     public static void tambahNotifOtomatis(int type, String title, String desc) {
-        // Cek Anti-Spam (Jangan masukkan jika judul yang sama persis sudah ada)
+        // Cek Anti-Spam: Jika judul DAN isinya sama persis dengan yang ada, baru ditolak
         for (ModelNotifikasi n : listNotifikasi) {
-            if (n.title.equals(title)) return;
+            if (n.title.equals(title) && n.desc.equals(desc)) return;
         }
 
-        // Tambah ke daftar Notifikasi (layar Notifikasi)
+        // KITA TIDAK LAGI MENGHAPUS NOTIFIKASI LAMA DI SINI
+        // Semua data yang masuk akan ditumpuk dari atas!
+
         listNotifikasi.add(0, new ModelNotifikasi("auto", type, title, desc, "Baru saja", false));
 
-        // Tentukan Ikon & Warna Default untuk Tab Riwayat
-        int icon = R.drawable.warning; // Pastikan ada R.drawable.warning
+        int icon = R.drawable.warning;
         String bgColor = "#FFE1AD";
         String txtColor = "#DD961C";
-
         String t = title.toLowerCase();
 
-        // 1. DETEKSI SENSOR: Tentukan Ikon dan Warna Warning-nya
-        if (t.contains("air")) {
-            icon = R.drawable.water_waves;
-            bgColor = "#DBEAFE";
-            txtColor = "#3B82F6";
-        }
-        else if (t.contains("suhu")) {
-            icon = R.drawable.temperature;
-            bgColor = "#FEE2E2";
-            txtColor = "#EF4444";
-        }
-        else if (t.contains("tanah")) {
-            icon = R.drawable.meter;
-            bgColor = "#FFE1AD";
-            txtColor = "#DD961C";
-        }
-        else if (t.contains("tds") || t.contains("nutrisi")) {
-            icon = R.drawable.potion;
-            bgColor = "#F3E8FF";
-            txtColor = "#A855F7";
-        }
-        else if (t.contains("cahaya") || t.contains("terik") || t.contains("gelap") || t.contains("kurang")) {
-            icon = R.drawable.sun;
-            bgColor = "#FFF5CC";
-            txtColor = "#ECB800";
+        if (t.contains("air") || t.contains("tangki")) {
+            icon = R.drawable.water_waves; bgColor = "#DBEAFE"; txtColor = "#3B82F6";
+        } else if (t.contains("suhu") || t.contains("panas") || t.contains("dingin")) {
+            icon = R.drawable.temperature; bgColor = "#FEE2E2"; txtColor = "#EF4444";
+        } else if (t.contains("tanah") || t.contains("kering") || t.contains("basah")) {
+            icon = R.drawable.meter; bgColor = "#FFE1AD"; txtColor = "#DD961C";
+        } else if (t.contains("tds") || t.contains("nutrisi")) {
+            icon = R.drawable.potion; bgColor = "#F3E8FF"; txtColor = "#A855F7";
         }
 
-        // 2. TIMPA WARNA JIKA KONDISINYA AMAN (Ikon tetap memakai ikon sensor di atas)
         if (t.contains("normal") || t.contains("ideal") || t.contains("optimal")) {
-            // Perhatikan: icon tidak diubah lagi di sini agar sesuai dengan sensornya
-            bgColor = "#D6FFD2";
-            txtColor = "#107432";
+            bgColor = "#D6FFD2"; txtColor = "#107432";
         }
 
         Calendar c = Calendar.getInstance();
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", new Locale("id", "ID"));
         String timeStr = sdf.format(c.getTime());
 
-        // Tambah ke Tab Riwayat (GrafikActivity)
         listRiwayatGlobal.add(0, new ModelRiwayat(icon, bgColor, txtColor, title, "[" + timeStr + "] " + desc, c.getTimeInMillis()));
     }
 
     public static int getJumlahBelumDibaca() {
         int count = 0;
-        for (ModelNotifikasi n : listNotifikasi) { if (!n.isRead) count++; }
+        for (ModelNotifikasi n : listNotifikasi) {
+            if (!n.isRead) count++;
+        }
         return count;
     }
 }

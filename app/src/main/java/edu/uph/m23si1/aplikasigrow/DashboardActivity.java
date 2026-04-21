@@ -1,7 +1,6 @@
-package edu.uph.m23si1.aplikasigrow; 
+package edu.uph.m23si1.aplikasigrow;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -18,43 +17,46 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.SwitchCompat;
 
 import com.google.android.material.card.MaterialCardView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class DashboardActivity extends AppCompatActivity {
 
-    // --- DEKLARASI VARIABEL TAMPILAN ---
     private TextView tvHello, tvPesanPeringatan;
     private MaterialCardView cardWarning;
     private ImageView btnCloseWarning;
 
-    private TextView tvNilaiCahaya, tvKondisiCahaya, tvStatusCahaya;
-    private ProgressBar pbCahaya;
+    // Info Tanaman Dashboard
+    private MaterialCardView cardInfoTanaman;
+    private TextView tvNamaTanamanDash, tvUsiaTanamanDash;
 
+    // Sensor & Aktuator
     private TextView tvNilaiSuhu, tvTingkatSuhu, badgeSuhu, tvRentangSuhu;
     private ProgressBar pbSuhu;
-
     private TextView tvNilaiTanah, tvTingkatTanah, badgeTanah, tvRentangTanah;
     private ProgressBar pbTanah;
-
     private TextView tvNilaiAir, tvTingkatAir, badgeAir, tvRentangAir;
     private ProgressBar pbAir;
-
     private TextView tvNilaiTds, tvTingkatTds, badgeTds, tvRentangTds;
     private ProgressBar pbTds;
 
-    private SwitchCompat switchPompa, switchParanet;
+    private SwitchCompat switchPompa;
     private TextView tvStatusPompaValue, btnPompaAuto, btnPompaManual;
-    private TextView tvStatusParanetValue, btnParanetAuto, btnParanetManual;
 
     private LinearLayout navBeranda, navGrafik, navNotifikasi, navProfil;
     private MaterialCardView tvBadgeFooter;
     private TextView tvBadgeAngka;
 
+    // Database
     private DatabaseReference databaseRef;
+    private FirebaseAuth mAuth;
+    private String uidUser = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,10 +66,14 @@ public class DashboardActivity extends AppCompatActivity {
 
         if (getSupportActionBar() != null) getSupportActionBar().hide();
 
+        mAuth = FirebaseAuth.getInstance();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) uidUser = currentUser.getUid();
+
         databaseRef = FirebaseDatabase.getInstance().getReference("iGrow_Data");
 
         inisialisasiViews();
-        tampilkanNama();
+        tampilkanDataUserDanTanaman();
         setupTombolDanFooter();
         mulaiDengarFirebase();
     }
@@ -94,10 +100,9 @@ public class DashboardActivity extends AppCompatActivity {
         tvPesanPeringatan = findViewById(R.id.tvPesanPeringatan);
         btnCloseWarning = findViewById(R.id.btnCloseWarning);
 
-        tvNilaiCahaya = findViewById(R.id.tvNilaiCahaya);
-        tvKondisiCahaya = findViewById(R.id.tvKondisiCahaya);
-        tvStatusCahaya = findViewById(R.id.tvStatusCahaya);
-        pbCahaya = findViewById(R.id.pbCahaya);
+        cardInfoTanaman = findViewById(R.id.cardInfoTanaman);
+        tvNamaTanamanDash = findViewById(R.id.tvNamaTanamanDash);
+        tvUsiaTanamanDash = findViewById(R.id.tvUsiaTanamanDash);
 
         tvNilaiSuhu = findViewById(R.id.tvNilaiSuhu);
         tvTingkatSuhu = findViewById(R.id.tvTingkatSuhu);
@@ -128,11 +133,6 @@ public class DashboardActivity extends AppCompatActivity {
         btnPompaAuto = findViewById(R.id.btnPompaAuto);
         btnPompaManual = findViewById(R.id.btnPompaManual);
 
-        switchParanet = findViewById(R.id.switchParanet);
-        tvStatusParanetValue = findViewById(R.id.tvStatusParanetValue);
-        btnParanetAuto = findViewById(R.id.btnParanetAuto);
-        btnParanetManual = findViewById(R.id.btnParanetManual);
-
         navBeranda = findViewById(R.id.navBeranda);
         navGrafik = findViewById(R.id.navGrafik);
         navNotifikasi = findViewById(R.id.navNotifikasi);
@@ -145,12 +145,44 @@ public class DashboardActivity extends AppCompatActivity {
         btnCloseWarning.setOnClickListener(v -> cardWarning.setVisibility(View.GONE));
     }
 
-    private void tampilkanNama() {
-        SharedPreferences loginSession = getSharedPreferences("LoginSession", MODE_PRIVATE);
-        String userEmail = loginSession.getString("email", "default");
-        String fileName = "iGrowPrefs_" + userEmail.replace(".", "_");
-        SharedPreferences prefs = getSharedPreferences(fileName, MODE_PRIVATE);
-        tvHello.setText("Hello, " + prefs.getString("nama", "User"));
+    private void tampilkanDataUserDanTanaman() {
+        if (uidUser.isEmpty()) return;
+
+        // Ambil Nama User dari Realtime DB (Karena profilnya disana)
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("Users").child(uidUser);
+        userRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    String nama = snapshot.child("nama").getValue(String.class);
+                    if (tvHello != null) tvHello.setText("Hello, " + (nama != null ? nama : "User"));
+                }
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        });
+
+        // Ambil Data Info Tanaman DARI FIRESTORE (Sesuai Permintaan)
+        FirebaseFirestore.getInstance().collection("Users").document(uidUser).collection("Tanaman").document("Info")
+                .addSnapshotListener((snapshot, error) -> {
+                    if (error != null) return;
+
+                    if (snapshot != null && snapshot.exists()) {
+                        String namaTanaman = snapshot.getString("nama_tanaman");
+                        String umur = snapshot.getString("umur");
+
+                        tvNamaTanamanDash.setText(namaTanaman != null && !namaTanaman.isEmpty() ? namaTanaman : "Belum diset");
+                        tvUsiaTanamanDash.setText("Usia: " + (umur != null && !umur.isEmpty() ? umur : "-"));
+                    } else {
+                        tvNamaTanamanDash.setText("Belum Ada Tanaman");
+                        tvUsiaTanamanDash.setText("Usia: -");
+                    }
+                });
+
+        if (cardInfoTanaman != null) {
+            cardInfoTanaman.setOnClickListener(v -> {
+                startActivity(new Intent(DashboardActivity.this, InfoTanamanActivity.class));
+            });
+        }
     }
 
     private void setupTombolDanFooter() {
@@ -159,12 +191,6 @@ public class DashboardActivity extends AppCompatActivity {
         });
         btnPompaAuto.setOnClickListener(v -> databaseRef.child("aktuator/pompa/mode").setValue("auto"));
         btnPompaManual.setOnClickListener(v -> databaseRef.child("aktuator/pompa/mode").setValue("manual"));
-
-        switchParanet.setOnCheckedChangeListener((btn, isChecked) -> {
-            if (btn.isPressed()) databaseRef.child("aktuator/paranet/status").setValue(isChecked);
-        });
-        btnParanetAuto.setOnClickListener(v -> databaseRef.child("aktuator/paranet/mode").setValue("auto"));
-        btnParanetManual.setOnClickListener(v -> databaseRef.child("aktuator/paranet/mode").setValue("manual"));
 
         navBeranda.setOnClickListener(v -> Toast.makeText(this, "Anda sudah di Beranda", Toast.LENGTH_SHORT).show());
         navGrafik.setOnClickListener(v -> { startActivity(new Intent(this, GrafikActivity.class)); overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out); });
@@ -178,35 +204,52 @@ public class DashboardActivity extends AppCompatActivity {
         databaseRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (!snapshot.exists()) { buatDataAwal(); return; }
+                if (!snapshot.exists()) return;
+
                 try {
                     double suhu = getDouble(snapshot, "sensor/suhu");
                     double tanah = getDouble(snapshot, "sensor/tanah");
                     double air = getDouble(snapshot, "sensor/air");
                     double tds = getDouble(snapshot, "sensor/tds");
-                    double cahaya = getDouble(snapshot, "sensor/cahaya");
+
+                    if (DataGlobal.lastAlertSuhu == -999) DataGlobal.lastAlertSuhu = suhu;
+                    if (DataGlobal.lastAlertTanah == -999) DataGlobal.lastAlertTanah = tanah;
+                    if (DataGlobal.lastAlertAir == -999) DataGlobal.lastAlertAir = air;
+                    if (DataGlobal.lastAlertTds == -999) DataGlobal.lastAlertTds = tds;
 
                     StringBuilder isiPeringatan = new StringBuilder();
                     boolean adaBahayaHalamanIni = false;
 
-                    // ================= 1. SUHU =================
+                    // 1. SUHU
                     tvNilaiSuhu.setText((int)suhu + "°C");
                     pbSuhu.setProgress((int) ((suhu / 50.0) * 100));
                     tvTingkatSuhu.setText("Tingkat: " + pbSuhu.getProgress() + "%");
 
-                    if (suhu < 10 || suhu > 38) {
-                        String rentangSuhu = suhu < 10 ? String.format("- %.1f°C ", (10 - suhu)) : String.format("+ %.1f°C ", (suhu - 38));
-                        setKondisiMerahAtauHijau(badgeSuhu, tvRentangSuhu, suhu < 10 ? "Warning" : "T. Tinggi", rentangSuhu, false);
-
-                        isiPeringatan.append("• Masalah Suhu Udara!\n"); adaBahayaHalamanIni = true;
-                        DataGlobal.tambahNotifOtomatis(1, "Suhu Udara Tidak Normal", "Suhu saat ini " + suhu + "°C.");
-                        DataGlobal.statusSuhuBahaya = true;
+                    if (suhu > 38.0) {
+                        String rentangSuhu = String.format("+ %.1f°C ", (suhu - 38));
+                        setKondisiMerahAtauHijau(badgeSuhu, tvRentangSuhu, "T. Tinggi", rentangSuhu, false);
+                        isiPeringatan.append("• Suhu Terlalu Panas!\n"); adaBahayaHalamanIni = true;
+                        if (!DataGlobal.statusSuhuBahaya || Math.abs(suhu - DataGlobal.lastAlertSuhu) >= 2.0) {
+                            DataGlobal.tambahNotifOtomatis(1, "Suhu Udara Terlalu Panas", "Suhu melonjak ke " + suhu + "°C.");
+                            DataGlobal.statusSuhuBahaya = true; DataGlobal.lastAlertSuhu = suhu;
+                        }
+                    } else if (suhu < 10.0) {
+                        String rentangSuhu = String.format("- %.1f°C ", (10 - suhu));
+                        setKondisiMerahAtauHijau(badgeSuhu, tvRentangSuhu, "Warning", rentangSuhu, false);
+                        isiPeringatan.append("• Suhu Terlalu Dingin!\n"); adaBahayaHalamanIni = true;
+                        if (!DataGlobal.statusSuhuBahaya || Math.abs(suhu - DataGlobal.lastAlertSuhu) >= 2.0) {
+                            DataGlobal.tambahNotifOtomatis(1, "Suhu Udara Terlalu Dingin", "Suhu drop ke " + suhu + "°C.");
+                            DataGlobal.statusSuhuBahaya = true; DataGlobal.lastAlertSuhu = suhu;
+                        }
                     } else {
                         setKondisiMerahAtauHijau(badgeSuhu, tvRentangSuhu, "Normal", "+ 0°C ", true);
-                        if (DataGlobal.statusSuhuBahaya) { DataGlobal.tambahNotifOtomatis(2, "Suhu Kembali Normal", "Suhu udara sudah stabil di " + suhu + "°C."); DataGlobal.statusSuhuBahaya = false; }
+                        if (DataGlobal.statusSuhuBahaya) {
+                            DataGlobal.tambahNotifOtomatis(2, "Suhu Udara Normal", "Suhu stabil di " + suhu + "°C.");
+                            DataGlobal.statusSuhuBahaya = false; DataGlobal.lastAlertSuhu = suhu;
+                        }
                     }
 
-                    // ================= 2. TANAH (UPDATE KERING & BASAH) =================
+                    // 2. TANAH
                     tvNilaiTanah.setText((int)tanah + "%");
                     pbTanah.setProgress((int) tanah);
                     tvTingkatTanah.setText("Tingkat: " + (int)tanah + "%");
@@ -214,30 +257,28 @@ public class DashboardActivity extends AppCompatActivity {
                     if (tanah < 24.8) {
                         String rentangTanah = String.format("- %.1f%% ", (24.8 - tanah));
                         setKondisiMerahAtauHijau(badgeTanah, tvRentangTanah, "Kering", rentangTanah, false);
-
-                        isiPeringatan.append("• Tanah Terlalu Kering!\n");
-                        adaBahayaHalamanIni = true;
-                        DataGlobal.tambahNotifOtomatis(1, "Kelembapan Tanah Rendah", "Tanah sangat kering berada di " + (int)tanah + "%.");
-                        DataGlobal.statusTanahBahaya = true;
-
+                        isiPeringatan.append("• Tanah Sangat Kering!\n"); adaBahayaHalamanIni = true;
+                        if (!DataGlobal.statusTanahBahaya || Math.abs(tanah - DataGlobal.lastAlertTanah) >= 5.0) {
+                            DataGlobal.tambahNotifOtomatis(1, "Tanah Sangat Kering", "Kelembapan drop ke " + (int)tanah + "%.");
+                            DataGlobal.statusTanahBahaya = true; DataGlobal.lastAlertTanah = tanah;
+                        }
                     } else if (tanah > 31.8) {
                         String rentangTanah = String.format("+ %.1f%% ", (tanah - 31.8));
                         setKondisiMerahAtauHijau(badgeTanah, tvRentangTanah, "Basah", rentangTanah, false);
-
-                        isiPeringatan.append("• Tanah Terlalu Basah!\n");
-                        adaBahayaHalamanIni = true;
-                        DataGlobal.tambahNotifOtomatis(1, "Kelembapan Tanah Berlebih", "Tanah sangat basah berada di " + (int)tanah + "%.");
-                        DataGlobal.statusTanahBahaya = true;
-
+                        isiPeringatan.append("• Tanah Terlalu Basah!\n"); adaBahayaHalamanIni = true;
+                        if (!DataGlobal.statusTanahBahaya || Math.abs(tanah - DataGlobal.lastAlertTanah) >= 5.0) {
+                            DataGlobal.tambahNotifOtomatis(1, "Tanah Terlalu Basah", "Kelembapan naik ke " + (int)tanah + "%.");
+                            DataGlobal.statusTanahBahaya = true; DataGlobal.lastAlertTanah = tanah;
+                        }
                     } else {
                         setKondisiMerahAtauHijau(badgeTanah, tvRentangTanah, "Normal", "+ 0% ", true);
                         if (DataGlobal.statusTanahBahaya) {
-                            DataGlobal.tambahNotifOtomatis(2, "Kelembapan Tanah Normal", "Tanah sudah pada kondisi ideal (" + (int)tanah + "%).");
-                            DataGlobal.statusTanahBahaya = false;
+                            DataGlobal.tambahNotifOtomatis(2, "Kelembapan Tanah Normal", "Tanah ideal di (" + (int)tanah + "%).");
+                            DataGlobal.statusTanahBahaya = false; DataGlobal.lastAlertTanah = tanah;
                         }
                     }
 
-                    // ================= 3. AIR =================
+                    // 3. AIR
                     tvNilaiAir.setText((int)air + "%");
                     pbAir.setProgress((int) air);
                     tvTingkatAir.setText("Tingkat: " + (int)air + "%");
@@ -245,86 +286,63 @@ public class DashboardActivity extends AppCompatActivity {
                     if (air < 70) {
                         String rentangAir = String.format("- %d%% ", (70 - (int)air));
                         setKondisiMerahAtauHijau(badgeAir, tvRentangAir, "Warning", rentangAir, false);
-
                         isiPeringatan.append("• Air Tangki Menipis!\n"); adaBahayaHalamanIni = true;
-                        DataGlobal.tambahNotifOtomatis(1, "Air Tangki Menipis", "Kapasitas air sisa " + (int)air + "%.");
-                        DataGlobal.statusAirBahaya = true;
+                        if (!DataGlobal.statusAirBahaya || Math.abs(air - DataGlobal.lastAlertAir) >= 10.0) {
+                            DataGlobal.tambahNotifOtomatis(1, "Air Tangki Menipis", "Air sisa " + (int)air + "%.");
+                            DataGlobal.statusAirBahaya = true; DataGlobal.lastAlertAir = air;
+                        }
                     } else {
                         setKondisiMerahAtauHijau(badgeAir, tvRentangAir, "Normal", "+ 0% ", true);
-                        if (DataGlobal.statusAirBahaya) { DataGlobal.tambahNotifOtomatis(2, "Pasokan Air Normal", "Tangki air sudah terisi kembali."); DataGlobal.statusAirBahaya = false; }
+                        if (DataGlobal.statusAirBahaya) {
+                            DataGlobal.tambahNotifOtomatis(2, "Air Tangki Normal", "Tangki terisi penuh.");
+                            DataGlobal.statusAirBahaya = false; DataGlobal.lastAlertAir = air;
+                        }
                     }
 
-                    // ================= 4. TDS =================
+                    // 4. TDS
                     tvNilaiTds.setText((int)tds + " PPM");
                     pbTds.setProgress((int) ((tds / 1500.0) * 100));
                     tvTingkatTds.setText("Tingkat: " + pbTds.getProgress() + "%");
 
-                    if (tds < 840 || tds > 1050) {
-                        String rentangTds = tds < 840 ? String.format("- %d PPM ", (840 - (int)tds)) : String.format("+ %d PPM ", ((int)tds - 1050));
-                        setKondisiMerahAtauHijau(badgeTds, tvRentangTds, tds < 840 ? "Warning" : "T. Tinggi", rentangTds, false);
-
-                        isiPeringatan.append("• Masalah Nutrisi (TDS)!\n"); adaBahayaHalamanIni = true;
-                        DataGlobal.tambahNotifOtomatis(1, "Kadar Nutrisi Tidak Normal", "TDS berada di " + (int)tds + " PPM.");
-                        DataGlobal.statusTdsBahaya = true;
+                    if (tds < 840) {
+                        String rentangTds = String.format("- %d PPM ", (840 - (int)tds));
+                        setKondisiMerahAtauHijau(badgeTds, tvRentangTds, "Rendah", rentangTds, false);
+                        isiPeringatan.append("• Nutrisi TDS Rendah!\n"); adaBahayaHalamanIni = true;
+                        if (!DataGlobal.statusTdsBahaya || Math.abs(tds - DataGlobal.lastAlertTds) >= 50) {
+                            DataGlobal.tambahNotifOtomatis(1, "Nutrisi TDS Rendah", "TDS anjlok ke " + (int)tds + " PPM.");
+                            DataGlobal.statusTdsBahaya = true; DataGlobal.lastAlertTds = tds;
+                        }
+                    } else if (tds > 1050) {
+                        String rentangTds = String.format("+ %d PPM ", ((int)tds - 1050));
+                        setKondisiMerahAtauHijau(badgeTds, tvRentangTds, "T. Tinggi", rentangTds, false);
+                        isiPeringatan.append("• Nutrisi TDS Berlebih!\n"); adaBahayaHalamanIni = true;
+                        if (!DataGlobal.statusTdsBahaya || Math.abs(tds - DataGlobal.lastAlertTds) >= 50) {
+                            DataGlobal.tambahNotifOtomatis(1, "Nutrisi TDS Berlebih", "TDS melonjak ke " + (int)tds + " PPM.");
+                            DataGlobal.statusTdsBahaya = true; DataGlobal.lastAlertTds = tds;
+                        }
                     } else {
                         setKondisiMerahAtauHijau(badgeTds, tvRentangTds, "Normal", "+ 0 PPM ", true);
-                        if (DataGlobal.statusTdsBahaya) { DataGlobal.tambahNotifOtomatis(2, "Kadar Nutrisi Normal", "Nutrisi tanaman (TDS) sudah optimal di " + (int)tds + " PPM."); DataGlobal.statusTdsBahaya = false; }
-                    }
-
-                    // ================= 5. CAHAYA =================
-                    tvNilaiCahaya.setText(String.format("%,d", (int)cahaya).replace(',', '.'));
-                    pbCahaya.setProgress((int) ((cahaya / 120000.0) * 100));
-
-                    if (cahaya < 80000) {
-                        tvKondisiCahaya.setText("Redup");
-                        tvStatusCahaya.setText("WARNING");
-                        tvStatusCahaya.setTextColor(Color.parseColor("#FF4F3F"));
-                        isiPeringatan.append("• Cahaya Kurang / Redup!\n");
-                        adaBahayaHalamanIni = true;
-
-                        DataGlobal.tambahNotifOtomatis(1, "Cahaya Kurang", "Intensitas cahaya hanya " + (int)cahaya + " Lux.");
-                        DataGlobal.statusCahayaBahaya = true;
-                    }
-                    else if (cahaya > 100000) {
-                        tvKondisiCahaya.setText("Sangat Terang");
-                        tvStatusCahaya.setText("T. Terang");
-                        tvStatusCahaya.setTextColor(Color.parseColor("#FF4F3F"));
-                        isiPeringatan.append("• Cahaya Terlalu Tinggi!\n");
-                        adaBahayaHalamanIni = true;
-
-                        DataGlobal.tambahNotifOtomatis(1, "Cahaya Terik Ekstrem", "Cahaya terlalu Terang (" + (int)cahaya + " Lux).");
-                        DataGlobal.statusCahayaBahaya = true;
-                    }
-                    else {
-                        tvKondisiCahaya.setText("Terang");
-                        tvStatusCahaya.setText("NORMAL");
-                        tvStatusCahaya.setTextColor(Color.parseColor("#107432"));
-
-                        if (DataGlobal.statusCahayaBahaya) {
-                            DataGlobal.tambahNotifOtomatis(2, "Cahaya Kembali Normal", "Cahaya sudah berada di titik optimal.");
-                            DataGlobal.statusCahayaBahaya = false;
+                        if (DataGlobal.statusTdsBahaya) {
+                            DataGlobal.tambahNotifOtomatis(2, "Nutrisi TDS Normal", "TDS optimal di " + (int)tds + " PPM.");
+                            DataGlobal.statusTdsBahaya = false; DataGlobal.lastAlertTds = tds;
                         }
                     }
 
-                    // Tampilkan Banner Merah jika ada yang berstatus BahayaHalamanIni
                     cardWarning.setVisibility(adaBahayaHalamanIni ? View.VISIBLE : View.GONE);
                     if (adaBahayaHalamanIni) tvPesanPeringatan.setText(isiPeringatan.toString().trim());
 
                     updateBadgeNotifikasi();
 
-                    // --- SAKLAR POMPA OTOMATIS ---
+                    // --- SAKLAR POMPA ---
                     String modePompa = snapshot.child("aktuator/pompa/mode").getValue(String.class);
                     Boolean statPompa = snapshot.child("aktuator/pompa/status").getValue(Boolean.class);
                     if (modePompa == null) modePompa = "manual";
                     if (statPompa == null) statPompa = false;
 
                     if ("auto".equals(modePompa)) {
-                        switchPompa.setClickable(false); // Kunci switch manual
-
-                        // Pompa menyala JIKA tanah kering (< 24.8) DAN air di tangki ada (> 0)
+                        switchPompa.setClickable(false);
                         boolean tanahKering = (tanah < 24.8);
                         boolean tangkiAdaAir = (air > 0);
-
                         boolean pompaHarusNyala = (tanahKering && tangkiAdaAir);
 
                         if (statPompa != pompaHarusNyala) {
@@ -332,38 +350,13 @@ public class DashboardActivity extends AppCompatActivity {
                         }
                         statPompa = pompaHarusNyala;
                     } else {
-                        switchPompa.setClickable(true); // Buka kunci manual
+                        switchPompa.setClickable(true);
                     }
 
-                    // Update tampilan Pompa
                     switchPompa.setChecked(statPompa);
                     tvStatusPompaValue.setText(statPompa ? "ON" : "OFF");
                     tvStatusPompaValue.setTextColor(statPompa ? Color.parseColor("#107432") : Color.parseColor("#FF4F3F"));
                     setModeAktif(btnPompaAuto, btnPompaManual, modePompa);
-
-
-                    // --- SAKLAR PARANET OTOMATIS ---
-                    String modeParanet = snapshot.child("aktuator/paranet/mode").getValue(String.class);
-                    Boolean statParanet = snapshot.child("aktuator/paranet/status").getValue(Boolean.class);
-                    if (modeParanet == null) modeParanet = "manual";
-                    if (statParanet == null) statParanet = false;
-
-                    if ("auto".equals(modeParanet)) {
-                        switchParanet.setClickable(false); // Kunci switch manual
-                        boolean paranetHarusNyala = (suhu > 38);
-                        if (statParanet != paranetHarusNyala) {
-                            databaseRef.child("aktuator/paranet/status").setValue(paranetHarusNyala);
-                        }
-                        statParanet = paranetHarusNyala;
-                    } else {
-                        switchParanet.setClickable(true); // Buka kunci manual
-                    }
-
-                    // Update tampilan Paranet
-                    switchParanet.setChecked(statParanet);
-                    tvStatusParanetValue.setText(statParanet ? "ON" : "OFF");
-                    tvStatusParanetValue.setTextColor(statParanet ? Color.parseColor("#107432") : Color.parseColor("#FF4F3F"));
-                    setModeAktif(btnParanetAuto, btnParanetManual, modeParanet);
 
                 } catch (Exception e) { e.printStackTrace(); }
             }
@@ -398,39 +391,22 @@ public class DashboardActivity extends AppCompatActivity {
         MaterialCardView cardManual = (MaterialCardView) btnManual.getParent();
 
         if ("auto".equals(mode)) {
-            // --- JIKA MODE AUTO AKTIF ---
-            btnAuto.setTextColor(Color.parseColor("#107432")); // Teks Hijau
-            cardAuto.setStrokeColor(Color.parseColor("#107432")); // Garis Hijau
-            cardAuto.setCardBackgroundColor(ColorStateList.valueOf(Color.parseColor("#D6FFD2"))); // Background Hijau Muda
+            btnAuto.setTextColor(Color.parseColor("#107432"));
+            cardAuto.setStrokeColor(Color.parseColor("#107432"));
+            cardAuto.setCardBackgroundColor(ColorStateList.valueOf(Color.parseColor("#D6FFD2")));
 
-            // Tombol Manual dimatikan warnanya
-            btnManual.setTextColor(Color.parseColor("#858585")); // Teks Abu-abu
-            cardManual.setStrokeColor(Color.parseColor("#E0E0E0")); // Garis Abu-abu tipis
-            cardManual.setCardBackgroundColor(ColorStateList.valueOf(Color.TRANSPARENT)); // Background Bening
-
+            btnManual.setTextColor(Color.parseColor("#858585"));
+            cardManual.setStrokeColor(Color.parseColor("#E0E0E0"));
+            cardManual.setCardBackgroundColor(ColorStateList.valueOf(Color.TRANSPARENT));
         } else {
-            // --- JIKA MODE MANUAL AKTIF ---
             btnAuto.setTextColor(Color.parseColor("#858585"));
             cardAuto.setStrokeColor(Color.parseColor("#E0E0E0"));
             cardAuto.setCardBackgroundColor(ColorStateList.valueOf(Color.TRANSPARENT));
 
-            // Tombol Manual dihidupkan warnanya
             btnManual.setTextColor(Color.parseColor("#107432"));
             cardManual.setStrokeColor(Color.parseColor("#107432"));
             cardManual.setCardBackgroundColor(ColorStateList.valueOf(Color.parseColor("#D6FFD2")));
         }
-    }
-
-    private void buatDataAwal() {
-        databaseRef.child("sensor/suhu").setValue(25);
-        databaseRef.child("sensor/tanah").setValue(30);
-        databaseRef.child("sensor/air").setValue(90);
-        databaseRef.child("sensor/tds").setValue(900);
-        databaseRef.child("sensor/cahaya").setValue(80000);
-        databaseRef.child("aktuator/pompa/status").setValue(false);
-        databaseRef.child("aktuator/pompa/mode").setValue("auto");
-        databaseRef.child("aktuator/paranet/status").setValue(false);
-        databaseRef.child("aktuator/paranet/mode").setValue("auto");
     }
 
     @Override public void onBackPressed() { super.onBackPressed(); overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out); }
