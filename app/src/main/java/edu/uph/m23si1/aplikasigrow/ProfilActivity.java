@@ -1,4 +1,4 @@
-package edu.uph.m23si1.aplikasigrow; // WAJIB GANTI DENGAN PACKAGE KAMU
+package edu.uph.m23si1.aplikasigrow;
 
 import android.content.Intent;
 import android.os.Bundle;

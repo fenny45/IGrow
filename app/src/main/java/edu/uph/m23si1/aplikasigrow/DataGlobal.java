@@ -1,4 +1,4 @@
-package edu.uph.m23si1.aplikasigrow; // WAJIB GANTI SESUAI PACKAGE KAMU
+package edu.uph.m23si1.aplikasigrow;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;

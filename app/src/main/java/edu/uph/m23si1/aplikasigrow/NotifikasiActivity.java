@@ -14,11 +14,17 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.card.MaterialCardView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import edu.uph.m23si1.aplikasigrow.adapter.AdapterNotifikasi;
 import edu.uph.m23si1.aplikasigrow.model.ModelNotifikasi;
@@ -32,7 +38,11 @@ public class NotifikasiActivity extends AppCompatActivity {
     private LinearLayout navBeranda, navGrafik, navProfil;
 
     private AdapterNotifikasi adapter;
-    private DatabaseReference databaseRef;
+
+    // --- DATABASE SPLIT ---
+    private DatabaseReference databaseRef; // Baca Sensor dari Realtime DB
+    private FirebaseFirestore firestore;   // Simpan Riwayat ke Firestore
+    private String uidUser = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +52,12 @@ public class NotifikasiActivity extends AppCompatActivity {
 
         if (getSupportActionBar() != null) getSupportActionBar().hide();
 
+        // 1. Akun & Firestore
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) uidUser = currentUser.getUid();
+        firestore = FirebaseFirestore.getInstance();
+
+        // 2. Realtime DB
         databaseRef = FirebaseDatabase.getInstance().getReference("iGrow_Data/sensor");
         DataGlobal.initDataAwal();
 
@@ -80,6 +96,7 @@ public class NotifikasiActivity extends AppCompatActivity {
         adapter = new AdapterNotifikasi(DataGlobal.listNotifikasi, new AdapterNotifikasi.OnItemClickListener() {
             @Override
             public void onDeleteClick(int position) {
+                // Menghapus notif dari layar, tapi Data Riwayat di Firestore aman!
                 DataGlobal.listNotifikasi.remove(position);
                 adapter.notifyDataSetChanged();
                 hitungBadgeUnread();
@@ -104,6 +121,7 @@ public class NotifikasiActivity extends AppCompatActivity {
         });
 
         btnDeleteAll.setOnClickListener(v -> {
+            // Menghapus semua notif dari layar, tapi Data Riwayat di Firestore aman!
             DataGlobal.listNotifikasi.clear();
             adapter.notifyDataSetChanged();
             hitungBadgeUnread();
@@ -121,6 +139,7 @@ public class NotifikasiActivity extends AppCompatActivity {
                     double air = getDouble(snapshot, "air");
                     double tds = getDouble(snapshot, "tds");
 
+                    // Set nilai awal pelacak (Sync dengan Dashboard)
                     if (DataGlobal.lastAlertSuhu == -999) DataGlobal.lastAlertSuhu = suhu;
                     if (DataGlobal.lastAlertTanah == -999) DataGlobal.lastAlertTanah = tanah;
                     if (DataGlobal.lastAlertAir == -999) DataGlobal.lastAlertAir = air;
@@ -131,84 +150,71 @@ public class NotifikasiActivity extends AppCompatActivity {
                     // ================= 1. SUHU =================
                     if (suhu > 38.0) {
                         if (!DataGlobal.statusSuhuBahaya || Math.abs(suhu - DataGlobal.lastAlertSuhu) >= 2.0) {
-                            DataGlobal.tambahNotifOtomatis(1, "Suhu Udara Terlalu Panas", "Suhu melonjak ke " + suhu + "°C.");
-                            DataGlobal.statusSuhuBahaya = true;
-                            DataGlobal.lastAlertSuhu = suhu;
-                            adaUpdateBaru = true;
+                            prosesNotif(1, "Suhu Udara Terlalu Panas", "Suhu melonjak ke " + suhu + "°C.");
+                            DataGlobal.statusSuhuBahaya = true; DataGlobal.lastAlertSuhu = suhu; adaUpdateBaru = true;
                         }
                     } else if (suhu < 10.0) {
                         if (!DataGlobal.statusSuhuBahaya || Math.abs(suhu - DataGlobal.lastAlertSuhu) >= 2.0) {
-                            DataGlobal.tambahNotifOtomatis(1, "Suhu Udara Terlalu Dingin", "Suhu drop ke " + suhu + "°C.");
-                            DataGlobal.statusSuhuBahaya = true;
-                            DataGlobal.lastAlertSuhu = suhu;
-                            adaUpdateBaru = true;
+                            prosesNotif(1, "Suhu Udara Terlalu Dingin", "Suhu drop ke " + suhu + "°C.");
+                            DataGlobal.statusSuhuBahaya = true; DataGlobal.lastAlertSuhu = suhu; adaUpdateBaru = true;
                         }
-                    } else if (DataGlobal.statusSuhuBahaya) {
-                        DataGlobal.tambahNotifOtomatis(2, "Suhu Udara Normal", "Suhu stabil di " + suhu + "°C.");
-                        DataGlobal.statusSuhuBahaya = false;
-                        DataGlobal.lastAlertSuhu = suhu;
-                        adaUpdateBaru = true;
+                    } else {
+                        if (DataGlobal.statusSuhuBahaya) {
+                            prosesNotif(2, "Suhu Udara Normal", "Suhu stabil di " + suhu + "°C.");
+                            DataGlobal.statusSuhuBahaya = false; DataGlobal.lastAlertSuhu = suhu; adaUpdateBaru = true;
+                        }
                     }
 
                     // ================= 2. TANAH =================
                     if (tanah < 24.8) {
                         if (!DataGlobal.statusTanahBahaya || Math.abs(tanah - DataGlobal.lastAlertTanah) >= 5.0) {
-                            DataGlobal.tambahNotifOtomatis(1, "Tanah Sangat Kering", "Kelembapan drop ke " + (int)tanah + "%.");
-                            DataGlobal.statusTanahBahaya = true;
-                            DataGlobal.lastAlertTanah = tanah;
-                            adaUpdateBaru = true;
+                            prosesNotif(1, "Tanah Sangat Kering", "Kelembapan drop ke " + (int)tanah + "%.");
+                            DataGlobal.statusTanahBahaya = true; DataGlobal.lastAlertTanah = tanah; adaUpdateBaru = true;
                         }
                     } else if (tanah > 31.8) {
                         if (!DataGlobal.statusTanahBahaya || Math.abs(tanah - DataGlobal.lastAlertTanah) >= 5.0) {
-                            DataGlobal.tambahNotifOtomatis(1, "Tanah Terlalu Basah", "Kelembapan naik ke " + (int)tanah + "%.");
-                            DataGlobal.statusTanahBahaya = true;
-                            DataGlobal.lastAlertTanah = tanah;
-                            adaUpdateBaru = true;
+                            prosesNotif(1, "Tanah Terlalu Basah", "Kelembapan naik ke " + (int)tanah + "%.");
+                            DataGlobal.statusTanahBahaya = true; DataGlobal.lastAlertTanah = tanah; adaUpdateBaru = true;
                         }
-                    } else if (DataGlobal.statusTanahBahaya) {
-                        DataGlobal.tambahNotifOtomatis(2, "Kelembapan Tanah Normal", "Tanah ideal di (" + (int)tanah + "%).");
-                        DataGlobal.statusTanahBahaya = false;
-                        DataGlobal.lastAlertTanah = tanah;
-                        adaUpdateBaru = true;
+                    } else {
+                        if (DataGlobal.statusTanahBahaya) {
+                            prosesNotif(2, "Kelembapan Tanah Normal", "Tanah ideal di (" + (int)tanah + "%).");
+                            DataGlobal.statusTanahBahaya = false; DataGlobal.lastAlertTanah = tanah; adaUpdateBaru = true;
+                        }
                     }
 
                     // ================= 3. AIR =================
                     if (air < 70) {
                         if (!DataGlobal.statusAirBahaya || Math.abs(air - DataGlobal.lastAlertAir) >= 10.0) {
-                            DataGlobal.tambahNotifOtomatis(1, "Air Tangki Menipis", "Air sisa " + (int)air + "%.");
-                            DataGlobal.statusAirBahaya = true;
-                            DataGlobal.lastAlertAir = air;
-                            adaUpdateBaru = true;
+                            prosesNotif(1, "Air Tangki Menipis", "Air sisa " + (int)air + "%.");
+                            DataGlobal.statusAirBahaya = true; DataGlobal.lastAlertAir = air; adaUpdateBaru = true;
                         }
-                    } else if (DataGlobal.statusAirBahaya) {
-                        DataGlobal.tambahNotifOtomatis(2, "Air Tangki Normal", "Tangki terisi penuh.");
-                        DataGlobal.statusAirBahaya = false;
-                        DataGlobal.lastAlertAir = air;
-                        adaUpdateBaru = true;
+                    } else {
+                        if (DataGlobal.statusAirBahaya) {
+                            prosesNotif(2, "Air Tangki Normal", "Tangki terisi penuh.");
+                            DataGlobal.statusAirBahaya = false; DataGlobal.lastAlertAir = air; adaUpdateBaru = true;
+                        }
                     }
 
                     // ================= 4. TDS =================
                     if (tds < 840) {
                         if (!DataGlobal.statusTdsBahaya || Math.abs(tds - DataGlobal.lastAlertTds) >= 50) {
-                            DataGlobal.tambahNotifOtomatis(1, "Nutrisi TDS Rendah", "TDS anjlok ke " + (int)tds + " PPM.");
-                            DataGlobal.statusTdsBahaya = true;
-                            DataGlobal.lastAlertTds = tds;
-                            adaUpdateBaru = true;
+                            prosesNotif(1, "Nutrisi TDS Rendah", "TDS anjlok ke " + (int)tds + " PPM.");
+                            DataGlobal.statusTdsBahaya = true; DataGlobal.lastAlertTds = tds; adaUpdateBaru = true;
                         }
                     } else if (tds > 1050) {
                         if (!DataGlobal.statusTdsBahaya || Math.abs(tds - DataGlobal.lastAlertTds) >= 50) {
-                            DataGlobal.tambahNotifOtomatis(1, "Nutrisi TDS Berlebih", "TDS melonjak ke " + (int)tds + " PPM.");
-                            DataGlobal.statusTdsBahaya = true;
-                            DataGlobal.lastAlertTds = tds;
-                            adaUpdateBaru = true;
+                            prosesNotif(1, "Nutrisi TDS Berlebih", "TDS melonjak ke " + (int)tds + " PPM.");
+                            DataGlobal.statusTdsBahaya = true; DataGlobal.lastAlertTds = tds; adaUpdateBaru = true;
                         }
-                    } else if (DataGlobal.statusTdsBahaya) {
-                        DataGlobal.tambahNotifOtomatis(2, "Nutrisi TDS Normal", "TDS optimal di " + (int)tds + " PPM.");
-                        DataGlobal.statusTdsBahaya = false;
-                        DataGlobal.lastAlertTds = tds;
-                        adaUpdateBaru = true;
+                    } else {
+                        if (DataGlobal.statusTdsBahaya) {
+                            prosesNotif(2, "Nutrisi TDS Normal", "TDS optimal di " + (int)tds + " PPM.");
+                            DataGlobal.statusTdsBahaya = false; DataGlobal.lastAlertTds = tds; adaUpdateBaru = true;
+                        }
                     }
 
+                    // Update layar jika ada notifikasi/peringatan yang baru dimasukkan
                     if (adaUpdateBaru) {
                         adapter.notifyDataSetChanged();
                         rvNotifikasi.scrollToPosition(0);
@@ -218,6 +224,24 @@ public class NotifikasiActivity extends AppCompatActivity {
             }
             @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
+    }
+
+    // --- MENYIMPAN KE FIRESTORE ---
+    private void prosesNotif(int type, String title, String desc) {
+        // 1. Simpan di RAM untuk ditampilkan di layar Notifikasi
+        DataGlobal.tambahNotifOtomatis(type, title, desc);
+
+        // 2. Simpan Permanen ke FIRESTORE
+        if (!uidUser.isEmpty()) {
+            Map<String, Object> dataRiwayat = new HashMap<>();
+            dataRiwayat.put("judul", title);
+            dataRiwayat.put("deskripsi", desc);
+            dataRiwayat.put("waktu", System.currentTimeMillis());
+
+            firestore.collection("Users").document(uidUser)
+                    .collection("RiwayatSensor")
+                    .add(dataRiwayat);
+        }
     }
 
     private void hitungBadgeUnread() {
