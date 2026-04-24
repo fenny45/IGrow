@@ -309,7 +309,7 @@ public class DashboardActivity extends AppCompatActivity {
                         setKondisiMerahAtauHijau(badgeTds, tvRentangTds, "Rendah", rentangTds, false);
                         isiPeringatan.append("• Nutrisi TDS Rendah!\n"); adaBahayaHalamanIni = true;
                         if (!DataGlobal.statusTdsBahaya || Math.abs(tds - DataGlobal.lastAlertTds) >= 50) {
-                            DataGlobal.tambahNotifOtomatis(1, "Nutrisi TDS Rendah", "TDS anjlok ke " + (int)tds + " PPM.");
+                            DataGlobal.tambahNotifOtomatis(1, "Nutrisi TDS Rendah", "TDS menurun ke " + (int)tds + " PPM.");
                             DataGlobal.statusTdsBahaya = true; DataGlobal.lastAlertTds = tds;
                         }
                     } else if (tds > 1050) {
@@ -317,7 +317,7 @@ public class DashboardActivity extends AppCompatActivity {
                         setKondisiMerahAtauHijau(badgeTds, tvRentangTds, "T. Tinggi", rentangTds, false);
                         isiPeringatan.append("• Nutrisi TDS Berlebih!\n"); adaBahayaHalamanIni = true;
                         if (!DataGlobal.statusTdsBahaya || Math.abs(tds - DataGlobal.lastAlertTds) >= 50) {
-                            DataGlobal.tambahNotifOtomatis(1, "Nutrisi TDS Berlebih", "TDS melonjak ke " + (int)tds + " PPM.");
+                            DataGlobal.tambahNotifOtomatis(1, "Nutrisi TDS Berlebih", "TDS melebihi rentang ke " + (int)tds + " PPM.");
                             DataGlobal.statusTdsBahaya = true; DataGlobal.lastAlertTds = tds;
                         }
                     } else {

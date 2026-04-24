@@ -1,4 +1,4 @@
-package edu.uph.m23si1.aplikasigrow;
+package edu.uph.m23si1.aplikasigrow; // WAJIB GANTI SESUAI PACKAGE KAMU
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -32,10 +32,13 @@ public class DataGlobal {
         }
     }
 
-    public static void tambahNotifOtomatis(int type, String title, String desc) {
+    // PERUBAHAN PENTING: Ubah 'void' menjadi 'boolean'
+    public static boolean tambahNotifOtomatis(int type, String title, String desc) {
         // Cek Anti-Spam: Jika judul DAN isinya sama persis dengan yang ada, baru ditolak
         for (ModelNotifikasi n : listNotifikasi) {
-            if (n.title.equals(title) && n.desc.equals(desc)) return;
+            if (n.title.equals(title) && n.desc.equals(desc)) {
+                return false; // Kembalikan FALSE agar activity tahu ini spam dan tidak di-save ke Firestore
+            }
         }
 
         // KITA TIDAK LAGI MENGHAPUS NOTIFIKASI LAMA DI SINI
@@ -67,6 +70,8 @@ public class DataGlobal {
         String timeStr = sdf.format(c.getTime());
 
         listRiwayatGlobal.add(0, new ModelRiwayat(icon, bgColor, txtColor, title, "[" + timeStr + "] " + desc, c.getTimeInMillis()));
+
+        return true; // Kembalikan TRUE tandanya ini notifikasi baru dan boleh di-save ke Firestore
     }
 
     public static int getJumlahBelumDibaca() {

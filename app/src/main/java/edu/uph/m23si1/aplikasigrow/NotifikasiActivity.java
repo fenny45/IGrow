@@ -150,7 +150,7 @@ public class NotifikasiActivity extends AppCompatActivity {
                     // ================= 1. SUHU =================
                     if (suhu > 38.0) {
                         if (!DataGlobal.statusSuhuBahaya || Math.abs(suhu - DataGlobal.lastAlertSuhu) >= 2.0) {
-                            prosesNotif(1, "Suhu Udara Terlalu Panas", "Suhu melonjak ke " + suhu + "°C.");
+                            prosesNotif(1, "Suhu Udara Terlalu Panas", "Suhu udara panas ke " + suhu + "°C.");
                             DataGlobal.statusSuhuBahaya = true; DataGlobal.lastAlertSuhu = suhu; adaUpdateBaru = true;
                         }
                     } else if (suhu < 10.0) {
@@ -168,7 +168,7 @@ public class NotifikasiActivity extends AppCompatActivity {
                     // ================= 2. TANAH =================
                     if (tanah < 24.8) {
                         if (!DataGlobal.statusTanahBahaya || Math.abs(tanah - DataGlobal.lastAlertTanah) >= 5.0) {
-                            prosesNotif(1, "Tanah Sangat Kering", "Kelembapan drop ke " + (int)tanah + "%.");
+                            prosesNotif(1, "Tanah Sangat Kering", "Kelembapan menurun ke " + (int)tanah + "%.");
                             DataGlobal.statusTanahBahaya = true; DataGlobal.lastAlertTanah = tanah; adaUpdateBaru = true;
                         }
                     } else if (tanah > 31.8) {

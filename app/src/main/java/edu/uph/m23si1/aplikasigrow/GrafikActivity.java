@@ -1,4 +1,4 @@
-package edu.uph.m23si1.aplikasigrow;
+package edu.uph.m23si1.aplikasigrow; // WAJIB GANTI DENGAN PACKAGE KAMU
 
 import android.app.DatePickerDialog;
 import android.content.Intent;
@@ -30,11 +30,14 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -55,7 +58,7 @@ public class GrafikActivity extends AppCompatActivity {
     private MaterialCardView cardFilter1, cardFilter2, cardFilter3, btnCalendar;
     private TextView tvFilter1, tvFilter2, tvFilter3, tvTanggalRiwayat;
 
-    // Komponen Grafik (Tanpa Cahaya)
+    // Komponen Grafik
     private LineChart chartAir, chartSuhu, chartTanah, chartTds;
     private TextView tvValAir, tvValSuhu, tvValTanah, tvValTds;
     private TextView tvStatusAir, tvStatusTanah;
@@ -97,6 +100,10 @@ public class GrafikActivity extends AppCompatActivity {
         setupFooterNavigasi();
 
         setFilterWarna(1);
+
+        // --- FUNGSI BARU UNTUK MENARIK DATA MASA LALU ---
+        tarikRiwayatFirestore();
+
         bacaDataFirebase();
     }
 
@@ -137,7 +144,6 @@ public class GrafikActivity extends AppCompatActivity {
 
         tvTanggalRiwayat = findViewById(R.id.tvTanggalRiwayat);
 
-        // Grafik (Cahaya Dihapus)
         chartAir = findViewById(R.id.chartAir);
         chartSuhu = findViewById(R.id.chartSuhu);
         chartTanah = findViewById(R.id.chartTanah);
@@ -158,6 +164,62 @@ public class GrafikActivity extends AppCompatActivity {
         navProfil = findViewById(R.id.navProfil);
         tvBadgeFooter = findViewById(R.id.tvBadgeFooter);
         tvBadgeAngka = findViewById(R.id.tvBadgeAngka);
+    }
+
+    // --- FUNGSI BARU: Menarik Data dari Firestore ---
+    private void tarikRiwayatFirestore() {
+        if (uidUser.isEmpty()) return;
+
+        // Ambil dari Firestore dan urutkan dari yang terbaru
+        firestore.collection("Users").document(uidUser)
+                .collection("RiwayatSensor")
+                .orderBy("waktu", Query.Direction.DESCENDING)
+                .addSnapshotListener((value, error) -> {
+                    if (error != null) return;
+
+                    if (value != null) {
+                        // Bersihkan data sementara, kita ganti dengan data nyata dari Firestore
+                        DataGlobal.listRiwayatGlobal.clear();
+
+                        for (QueryDocumentSnapshot doc : value) {
+                            String judul = doc.getString("judul");
+                            String deskripsi = doc.getString("deskripsi");
+                            Long waktu = doc.getLong("waktu");
+
+                            if (judul != null && deskripsi != null && waktu != null) {
+                                // Tentukan ikon dan warna berdasarkan judul
+                                int icon = R.drawable.warning;
+                                String bgColor = "#FFE1AD";
+                                String txtColor = "#DD961C";
+                                String t = judul.toLowerCase();
+
+                                if (t.contains("air") || t.contains("tangki")) {
+                                    icon = R.drawable.water_waves; bgColor = "#DBEAFE"; txtColor = "#3B82F6";
+                                } else if (t.contains("suhu") || t.contains("panas") || t.contains("dingin")) {
+                                    icon = R.drawable.temperature; bgColor = "#FEE2E2"; txtColor = "#EF4444";
+                                } else if (t.contains("tanah") || t.contains("kering") || t.contains("basah")) {
+                                    icon = R.drawable.meter; bgColor = "#FFE1AD"; txtColor = "#DD961C";
+                                } else if (t.contains("tds") || t.contains("nutrisi")) {
+                                    icon = R.drawable.potion; bgColor = "#F3E8FF"; txtColor = "#A855F7";
+                                }
+
+                                if (t.contains("normal") || t.contains("ideal") || t.contains("optimal")) {
+                                    bgColor = "#D6FFD2"; txtColor = "#107432";
+                                }
+
+                                SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", new Locale("id", "ID"));
+                                String timeStr = sdf.format(new Date(waktu));
+                                String fullDesc = "[" + timeStr + "] " + deskripsi;
+
+                                // Tambahkan ke daftar riwayat global
+                                DataGlobal.listRiwayatGlobal.add(new ModelRiwayat(icon, bgColor, txtColor, judul, fullDesc, waktu));
+                            }
+                        }
+
+                        // Refresh layar
+                        perbaruiDataTampilan();
+                    }
+                });
     }
 
     private void setupTabSwitcher() {
@@ -422,7 +484,6 @@ public class GrafikActivity extends AppCompatActivity {
     }
 
     private void bacaDataFirebase() {
-        DataGlobal.initDataAwal();
         databaseRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -437,91 +498,13 @@ public class GrafikActivity extends AppCompatActivity {
                     tvValTanah.setText((int)tanah + "%");
                     tvValTds.setText((int)tds + " ppm");
 
-                    // 1. AIR
-                    if (air < 70) {
-                        tvStatusAir.setText("Status: Kritis"); tvStatusAir.setTextColor(Color.parseColor("#FF4F3F"));
-                        prosesNotif(1, "Air Tangki Menipis", "Kapasitas air sisa " + (int)air + "%.");
-                        DataGlobal.statusAirBahaya = true;
-                    } else {
-                        tvStatusAir.setText("Status: Aman"); tvStatusAir.setTextColor(Color.parseColor("#858585"));
-                        if (DataGlobal.statusAirBahaya) {
-                            prosesNotif(2, "Kapasitas Air Normal", "Tangki air sudah terisi kembali.");
-                            DataGlobal.statusAirBahaya = false;
-                        }
-                    }
-
-                    // 2. TANAH
-                    if (tanah < 24.8) {
-                        tvStatusTanah.setText("Status: Kering"); tvStatusTanah.setTextColor(Color.parseColor("#FF4F3F"));
-                        prosesNotif(1, "Kelembapan Tanah Rendah", "Tanah sangat kering berada di " + (int)tanah + "%.");
-                        DataGlobal.statusTanahBahaya = true;
-                    } else if (tanah > 31.8) {
-                        tvStatusTanah.setText("Status: Basah"); tvStatusTanah.setTextColor(Color.parseColor("#FF4F3F"));
-                        prosesNotif(1, "Kelembapan Tanah Berlebih", "Tanah sangat basah berada di " + (int)tanah + "%.");
-                        DataGlobal.statusTanahBahaya = true;
-                    } else {
-                        tvStatusTanah.setText("Status: Normal"); tvStatusTanah.setTextColor(Color.parseColor("#858585"));
-                        if (DataGlobal.statusTanahBahaya) {
-                            prosesNotif(2, "Kelembapan Tanah Normal", "Tanah sudah pada kondisi ideal (" + (int)tanah + "%).");
-                            DataGlobal.statusTanahBahaya = false;
-                        }
-                    }
-
-                    // 3. SUHU
-                    if (suhu < 10 || suhu > 38.0) {
-                        prosesNotif(1, "Suhu Udara Tidak Normal", "Suhu saat ini " + suhu + "°C.");
-                        DataGlobal.statusSuhuBahaya = true;
-                    } else if (DataGlobal.statusSuhuBahaya) {
-                        prosesNotif(2, "Suhu Kembali Normal", "Suhu udara sudah stabil di " + suhu + "°C.");
-                        DataGlobal.statusSuhuBahaya = false;
-                    }
-
-                    // 4. TDS
-                    if (tds < 840 || tds > 1050) {
-                        prosesNotif(1, "Kadar Nutrisi Tidak Normal", "TDS berada di " + (int)tds + " PPM.");
-                        DataGlobal.statusTdsBahaya = true;
-                    } else if (DataGlobal.statusTdsBahaya) {
-                        prosesNotif(2, "Kadar Nutrisi Normal", "Nutrisi tanaman (TDS) sudah optimal di " + (int)tds + " PPM.");
-                        DataGlobal.statusTdsBahaya = false;
-                    }
-
-                    updateBadgeUI();
-
-                    // Segarkan list/grafik saat ada update realtime
-                    perbaruiDataTampilan();
+                    // Notifikasi & Riwayat otomatis disinkronkan via Firestore Listener
+                    // Jadi tidak perlu menulis ulang logika notifikasi di sini.
                 }
             }
             @Override
             public void onCancelled(@NonNull DatabaseError error) {}
         });
-    }
-
-    // Logika tambahan untuk MENYIMPAN RIWAYAT KE FIRESTORE
-    private void prosesNotif(int type, String title, String desc) {
-        // Cek dulu apakah notifikasi ini sudah ada di DataGlobal agar tidak spam berulang
-        boolean isSudahAda = false;
-        for (int i=0; i<DataGlobal.listNotifikasi.size(); i++) {
-            if (DataGlobal.listNotifikasi.get(i).title.equals(title)) {
-                isSudahAda = true; break;
-            }
-        }
-
-        if (!isSudahAda) {
-            // Tambahkan ke memori sementara (DataGlobal)
-            DataGlobal.tambahNotifOtomatis(type, title, desc);
-
-            // Simpan juga ke Firestore agar datanya tidak hilang saat aplikasi ditutup
-            if (!uidUser.isEmpty()) {
-                Map<String, Object> dataRiwayat = new HashMap<>();
-                dataRiwayat.put("judul", title);
-                dataRiwayat.put("deskripsi", desc);
-                dataRiwayat.put("waktu", System.currentTimeMillis());
-
-                firestore.collection("Users").document(uidUser)
-                        .collection("RiwayatSensor")
-                        .add(dataRiwayat);
-            }
-        }
     }
 
     private double getDouble(DataSnapshot snapshot, String path) {

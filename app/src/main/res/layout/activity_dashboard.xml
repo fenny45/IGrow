@@ -332,9 +332,9 @@
                                         android:layout_marginStart="5dp"
                                         android:layout_weight="1"
                                         android:fontFamily="@font/baloo2_medium"
-                                        android:text="Tanah"
+                                        android:text="kelembapan tanah"
                                         android:textColor="#000000"
-                                        android:textSize="12dp" />
+                                        android:textSize="11dp" />
 
                                     <com.google.android.material.card.MaterialCardView
                                         android:layout_width="wrap_content"
